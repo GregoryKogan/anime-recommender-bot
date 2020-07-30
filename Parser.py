@@ -55,23 +55,35 @@ def pearson_correlation(line_1, line_2):
     cross_products = cross_product(deviation_scores_1, deviation_scores_2)
     sum_of_products = get_sum(cross_products)
 
-    correlation_coefficient = sum_of_products / ((sum_of_squares_1 ** 0.5) * (sum_of_squares_2 ** 0.5))
+    if (sum_of_squares_1 ** 0.5) * (sum_of_squares_2 ** 0.5) != 0:
+        correlation_coefficient = sum_of_products / ((sum_of_squares_1 ** 0.5) * (sum_of_squares_2 ** 0.5))
+    else:
+        correlation_coefficient = 0
 
     '''debugging'''
-    print('mean 1: ', mean_1)
-    print('mean 2: ', mean_2)
-    print('deviation 1: ', deviation_scores_1)
-    print('deviation 2: ', deviation_scores_2)
-    print('squares 1: ', square_scores_1)
-    print('squares 2: ', square_scores_2)
-    print('SS 1: ', sum_of_squares_1)
-    print('SS 2: ', sum_of_squares_2)
-    print('Cross products: ', cross_products)
-    print('SP: ', sum_of_products)
-    print('Correlation coefficient: ', correlation_coefficient)
+    # print('mean 1: ', mean_1)
+    # print('mean 2: ', mean_2)
+    # print('deviation 1: ', deviation_scores_1)
+    # print('deviation 2: ', deviation_scores_2)
+    # print('squares 1: ', square_scores_1)
+    # print('squares 2: ', square_scores_2)
+    # print('SS 1: ', sum_of_squares_1)
+    # print('SS 2: ', sum_of_squares_2)
+    # print('Cross products: ', cross_products)
+    # print('SP: ', sum_of_products)
+    # print('Correlation coefficient: ', correlation_coefficient)
+
+    return correlation_coefficient
 
 
 if __name__ == '__main__':
     line1 = [1, 2, 3, 4, 5]
-    line2 = [6, 4, 5, 3, 2]
-    pearson_correlation(line1, line2)
+    line2 = [2, 2, 4, 1, 9]
+    coeff = pearson_correlation(line1, line2)
+    print(coeff)
+
+'''
+Main logic:
+1). There is a function that i give to anime id's and it spits out correlation score for them
+2). I have a csv table where cell with coordinats x and y contains correlation score for anime x and y
+'''
