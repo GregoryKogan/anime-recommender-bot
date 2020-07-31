@@ -1,4 +1,9 @@
-import sys
+"""
+This file works with 'rating.csv' and 'anime.csv' files in same directory
+It produces new csv table with pearson correlation coefficient for any pair of anime titles
+"""
+
+"""This function calculates mean value for all elements in input list"""
 
 
 def find_mean(line):
@@ -9,12 +14,18 @@ def find_mean(line):
     return mean
 
 
+"""This function calculates deviation from given mean and returns it as new list"""
+
+
 def calculate_deviation(line, mean):
     result = []
     for value in line:
         deviation_score = value - mean
         result.append(deviation_score)
     return result
+
+
+"""This function returns list with squares of elements in input list"""
 
 
 def square_all(line):
@@ -25,11 +36,17 @@ def square_all(line):
     return result
 
 
+"""This function sum of all elements in given list"""
+
+
 def get_sum(line):
     sum_of_values = 0
     for value in line:
         sum_of_values += value
     return sum_of_values
+
+
+"""This function returns cross product of two lists. Result is another array with same length as both input lists"""
 
 
 def cross_product(line_1, line_2):
@@ -41,6 +58,16 @@ def cross_product(line_1, line_2):
         multiplication_value = line_1[i] * line_2[i]
         result.append(multiplication_value)
     return result
+
+
+def convert_to_list(ordered_dict):
+    result = []
+    for line in ordered_dict:
+        result.append(line)
+    return result
+
+
+"""This function calculates Pearson correlation coefficient for to lists (lists need to have same length)"""
 
 
 def pearson_correlation(line_1, line_2):
@@ -76,11 +103,42 @@ def pearson_correlation(line_1, line_2):
     return correlation_coefficient
 
 
+def compute_anime_correlation(id_1, id_2):
+    global rating_list, anime_list
+    print(id_1, id_2)
+    for anime in anime_list:
+        if int(anime['anime_id']) == id_1 or int(anime['anime_id']) == id_2:
+            print(anime['name'])
+
+
 if __name__ == '__main__':
-    line1 = [1, 2, 3, 4, 5]
-    line2 = [2, 2, 4, 1, 9]
-    coeff = pearson_correlation(line1, line2)
-    print(coeff)
+    # importing libs for file management
+    import csv
+    import codecs
+
+    # reading files
+    rating_file = codecs.open('rating.csv', 'r', 'utf_8_sig')
+    anime_file = codecs.open('anime.csv', 'r', 'utf_8_sig')
+
+    # making ordered dictionaries from files
+    rating_ordered_dict = csv.DictReader(rating_file)
+    anime_ordered_dict = csv.DictReader(anime_file)
+
+    # converting ordered dictionaries to usual dictionaries
+    rating_list = convert_to_list(rating_ordered_dict)
+    anime_list = convert_to_list(anime_ordered_dict)
+
+    # getting list of all anime ids
+    anime_ids = []
+    for anime in anime_list:
+        anime_ids.append(anime['anime_id'])
+
+
+    # compute_anime_correlation(32281, 28977)
+
+    # closing files
+    rating_file.close()
+    anime_file.close()
 
 '''
 Main logic:
