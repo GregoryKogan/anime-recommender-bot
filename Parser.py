@@ -234,4 +234,8 @@ def compress_ratings_file():
 
 
 if __name__ == '__main__':
-    compress_ratings_file()
+    task = str(input('Task: '))
+    if task == 'compute reorganized ratings':
+        compress_ratings_file()
+    elif task == 'compute final data base':
+        print('Computing final data base...')
