@@ -173,9 +173,9 @@ def get_ratings(anime_id, ratings_list):
 def compute_anime_correlation(id_1, id_2, ratings_list):
     first_ratings = get_ratings(id_1, ratings_list)
     second_ratings = get_ratings(id_2, ratings_list)
+    first_ratings, second_ratings = get_matching_ratings(first_ratings, second_ratings)
     if len(first_ratings) == 0 or len(second_ratings) == 0:
         return 0
-    first_ratings, second_ratings = get_matching_ratings(first_ratings, second_ratings)
     correlation_coefficient = pearson_correlation(first_ratings, second_ratings)
     return correlation_coefficient
 
@@ -265,6 +265,27 @@ def is_data_base_done(anime_ids):
             return False
 
 
+def get_correlation_line(anime_id, anime_ids):
+    new_ratings_file = open('ReorganizedDB.txt', 'r')
+    new_ratings = new_ratings_file.read()
+    new_ratings_list = new_ratings.split('\n')
+
+    result_line = []
+    result_line.append(str(anime_id))
+    for i in range(len(anime_ids)):
+        anime = anime_ids[i]
+        correlation_coefficient = compute_anime_correlation(anime_id, anime, new_ratings_list)
+        correlation_coefficient = round(correlation_coefficient, 2)
+        result_line.append(str(correlation_coefficient))
+
+        line_num = anime_ids.index(anime_id) + 1
+        done_percent = int((i + 1) / len(anime_ids) * 100)
+        if done_percent != int(i / len(anime_ids) * 100):
+            print(str(done_percent) + '% of ' + str(line_num) + ' line out of ' + str(len(anime_ids)) + ' done')
+    new_ratings_file.close()
+    return result_line
+
+
 def write_next_line(anime_ids):
     import csv
     import codecs
@@ -279,7 +300,12 @@ def write_next_line(anime_ids):
         id_index = anime_ids.index(last_written_id)
         next_id = anime_ids[id_index + 1]
     data_base.close()
-    print(next_id)
+    correlation_line = get_correlation_line(next_id, anime_ids)
+    data_base = open('RecommenderDB.csv', mode='a', newline='')
+    db_writer = csv.writer(data_base, delimiter=',', quotechar='"')
+    db_writer.writerow(correlation_line)
+    data_base.close()
+    print('Line ' + str(id_index + 2) + ' out of ' + str(len(anime_ids)) + ' was computed')
 
 
 def compute_data_base():
@@ -289,7 +315,6 @@ def compute_data_base():
 
     # reading files
     print('Loading data')
-    new_ratings_file = open('ReorganizedDB.txt', 'r')
     anime_file = codecs.open('anime.csv', 'r', 'utf_8_sig')
 
     print('Preparing data')
@@ -299,15 +324,14 @@ def compute_data_base():
     # converting ordered dictionaries to object lists
     anime_list = convert_to_list(anime_ordered_dict)
 
-    # reading file and converting it to list of strings
-    new_ratings = new_ratings_file.read()
-    new_ratings_list = new_ratings.split('\n')
-
     print('Getting anime ids')
     # getting list of all anime ids
     anime_ids = []
     for anime in anime_list:
         anime_ids.append(int(anime['anime_id']))
+
+    # closing files
+    anime_file.close()
 
     print('Computing data base')
     data_base = open('RecommenderDB.csv', mode='r+', newline='')
@@ -321,13 +345,11 @@ def compute_data_base():
     while not is_data_base_done(anime_ids):
         write_next_line(anime_ids)
 
-    # closing files
-    new_ratings_file.close()
-    anime_file.close()
+    print('Data base was successfully computed!')
 
 
 if __name__ == '__main__':
-    print("Print 'reorginize ratings' or 'compute data base' or 'test'")
+    print("Print 'reorganize ratings' or 'compute data base' or 'test'")
     task = str(input('Task: '))
     if task == 'compute data base':
         reorganize_ratings()
