@@ -148,33 +148,42 @@ def get_matching_ratings(ratings_1, ratings_2):
 '''This function returns ratings for given anime title'''
 
 
-def get_ratings(anime_id):
-    return 42
+def get_ratings(anime_id, ratings_list):
+    ratings_string = None
+    for line in ratings_list:
+        if line.startswith('[' + str(anime_id) + ']'):
+            ratings_string = line
+            break
+    reviews = ratings_string.split(',')
+    reviews.pop(0)
+    ratings = []
+    for review in reviews:
+        review = review[:-1]
+        review = review[1:]
+        values = review.split('-')
+        user_id = int(values[0])
+        rating = int(values[1])
+        ratings.append([user_id, rating])
+    return ratings
 
 
 '''This function computes pearson correlation score for two given anime titles'''
 
 
-def compute_anime_correlation(id_1, id_2):
-    global rating_list, anime_list
-    for anime in anime_list:
-        if int(anime['anime_id']) == id_1:
-            print('First Anime: ' + anime['name'] + ' (' + str(id_1) + ')')
-        if int(anime['anime_id']) == id_2:
-            print('Second Anime: ' + anime['name'] + ' (' + str(id_2) + ')')
-    print('Getting ratings')
-    first_ratings = get_ratings(id_1)
-    second_ratings = get_ratings(id_2)
+def compute_anime_correlation(id_1, id_2, ratings_list):
+    first_ratings = get_ratings(id_1, ratings_list)
+    second_ratings = get_ratings(id_2, ratings_list)
+    if len(first_ratings) == 0 or len(second_ratings) == 0:
+        return 0
     first_ratings, second_ratings = get_matching_ratings(first_ratings, second_ratings)
     correlation_coefficient = pearson_correlation(first_ratings, second_ratings)
-    print(correlation_coefficient)
     return correlation_coefficient
 
 
 '''This function reorganizes 'rating.csv' file to more convenient format and writes it to 'ReorganizedDB.txt' file'''
 
 
-def compress_ratings_file():
+def compute_data_base():
     # importing libs for file management
     import csv
     import codecs
@@ -208,7 +217,7 @@ def compress_ratings_file():
     print('Reorganizing data')
     import time
     anime_ratings = []
-    for i in range(5):
+    for i in range(len(anime_ids)):
         begin_time = time.process_time()
         anime_id = anime_ids[i]
         ratings = find_ratings(anime_id, rating_list, user_ids)
@@ -234,8 +243,31 @@ def compress_ratings_file():
 
 
 if __name__ == '__main__':
+    print("Print 'compute data base' or 'test'")
     task = str(input('Task: '))
-    if task == 'compute reorganized ratings':
-        compress_ratings_file()
-    elif task == 'compute final data base':
-        print('Computing final data base...')
+    if task == 'compute data base':
+        compute_data_base()
+    elif task == 'test':
+        print('Loading data')
+        new_ratings_file = open('ReorganizedDB.txt', 'r')
+        new_ratings = new_ratings_file.read()
+        new_ratings_list = new_ratings.split('\n')
+        import time
+        user_input = 'start'
+        print("Print 'exit' to stop or 'anime_id_1,anime_id_2' to get correlation coefficient")
+        print('------------------')
+        while str(user_input) != 'exit':
+            user_input = str(input())
+            if user_input != 'exit':
+                values = user_input.split(',')
+                anime_id_1 = values[0]
+                anime_id_2 = values[1]
+                begin_time = time.process_time()
+                correlation_coefficient = compute_anime_correlation(anime_id_1, anime_id_2, new_ratings_list)
+                end_time = time.process_time()
+                print('Correlation coefficient is: ' + str(correlation_coefficient))
+                print('Computation took: ' + str(end_time - begin_time) + ' seconds')
+                print('------------------')
+        new_ratings_file.close()
+        print('------------------')
+
