@@ -183,7 +183,7 @@ def compute_anime_correlation(id_1, id_2, ratings_list):
 '''This function reorganizes 'rating.csv' file to more convenient format and writes it to 'ReorganizedDB.txt' file'''
 
 
-def compute_data_base():
+def reorganize_ratings():
     # importing libs for file management
     import csv
     import codecs
@@ -242,10 +242,96 @@ def compute_data_base():
     reorganized_db.close()
 
 
+# data_base = open('RecommenderDB.csv', mode='r+', newline='')
+# db_writer = csv.writer(data_base, delimiter=',', quotechar='"')
+
+def is_data_base_done(anime_ids):
+    import csv
+    import codecs
+    data_base = open('RecommenderDB.csv', mode='r', newline='')
+    lines = data_base.readlines()
+    if len(lines) == 1:
+        data_base.close()
+        return False
+    else:
+        last_line = lines[-1]
+        last_line = last_line.split(',')
+        last_written_id = int(last_line[0])
+        if last_written_id == anime_ids[-1]:
+            data_base.close()
+            return True
+        else:
+            data_base.close()
+            return False
+
+
+def write_next_line(anime_ids):
+    import csv
+    import codecs
+    data_base = open('RecommenderDB.csv', mode='r', newline='')
+    lines = data_base.readlines()
+    if len(lines) == 1:
+        next_id = anime_ids[0]
+    else:
+        last_line = lines[-1]
+        last_line = last_line.split(',')
+        last_written_id = int(last_line[0])
+        id_index = anime_ids.index(last_written_id)
+        next_id = anime_ids[id_index + 1]
+    data_base.close()
+    print(next_id)
+
+
+def compute_data_base():
+    # importing libs for file management
+    import csv
+    import codecs
+
+    # reading files
+    print('Loading data')
+    new_ratings_file = open('ReorganizedDB.txt', 'r')
+    anime_file = codecs.open('anime.csv', 'r', 'utf_8_sig')
+
+    print('Preparing data')
+    # making ordered dictionaries from files
+    anime_ordered_dict = csv.DictReader(anime_file)
+
+    # converting ordered dictionaries to object lists
+    anime_list = convert_to_list(anime_ordered_dict)
+
+    # reading file and converting it to list of strings
+    new_ratings = new_ratings_file.read()
+    new_ratings_list = new_ratings.split('\n')
+
+    print('Getting anime ids')
+    # getting list of all anime ids
+    anime_ids = []
+    for anime in anime_list:
+        anime_ids.append(int(anime['anime_id']))
+
+    print('Computing data base')
+    data_base = open('RecommenderDB.csv', mode='r+', newline='')
+    db_writer = csv.writer(data_base, delimiter=',', quotechar='"')
+    if len(data_base.readlines()) == 0:
+        headers = anime_ids.copy()
+        headers.insert(0, 'anime_id')
+        db_writer.writerow(headers)
+        data_base.close()
+
+    while not is_data_base_done(anime_ids):
+        write_next_line(anime_ids)
+
+    # closing files
+    new_ratings_file.close()
+    anime_file.close()
+
+
 if __name__ == '__main__':
-    print("Print 'compute data base' or 'test'")
+    print("Print 'reorginize ratings' or 'compute data base' or 'test'")
     task = str(input('Task: '))
     if task == 'compute data base':
+        reorganize_ratings()
+    elif task == 'db':
         compute_data_base()
     elif task == 'test':
         print('Loading data')
