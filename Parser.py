@@ -246,8 +246,6 @@ def reorganize_ratings():
 # db_writer = csv.writer(data_base, delimiter=',', quotechar='"')
 
 def is_data_base_done(anime_ids):
-    import csv
-    import codecs
     data_base = open('RecommenderDB.csv', mode='r', newline='')
     lines = data_base.readlines()
     if len(lines) == 1:
@@ -288,7 +286,6 @@ def get_correlation_line(anime_id, anime_ids):
 
 def write_next_line(anime_ids):
     import csv
-    import codecs
     data_base = open('RecommenderDB.csv', mode='r', newline='')
     lines = data_base.readlines()
     if len(lines) == 1:
