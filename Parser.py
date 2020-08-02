@@ -174,7 +174,7 @@ def compute_anime_correlation(id_1, id_2, ratings_list):
     first_ratings = get_ratings(id_1, ratings_list)
     second_ratings = get_ratings(id_2, ratings_list)
     first_ratings, second_ratings = get_matching_ratings(first_ratings, second_ratings)
-    if len(first_ratings) == 0 or len(second_ratings) == 0:
+    if len(first_ratings) < 7 or len(second_ratings) < 7:
         return 0
     correlation_coefficient = pearson_correlation(first_ratings, second_ratings)
     return correlation_coefficient
@@ -293,6 +293,7 @@ def write_next_line(anime_ids):
     lines = data_base.readlines()
     if len(lines) == 1:
         next_id = anime_ids[0]
+        id_index = -1
     else:
         last_line = lines[-1]
         last_line = last_line.split(',')
@@ -351,9 +352,9 @@ def compute_data_base():
 if __name__ == '__main__':
     print("Print 'reorganize ratings' or 'compute data base' or 'test'")
     task = str(input('Task: '))
-    if task == 'compute data base':
+    if task == 'reorganize ratings':
         reorganize_ratings()
-    elif task == 'db':
+    elif task == 'compute data base':
         compute_data_base()
     elif task == 'test':
         print('Loading data')
