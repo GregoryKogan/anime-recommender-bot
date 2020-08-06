@@ -8967,7 +8967,7 @@ anime_id,name,genre,type,episodes,rating,members
 29926,Inaka Nezumi to Machi Nezumi,Kids,Movie,1,4.28,89
 8786,Inakappe Taishou,"Comedy, Sports",TV,104,6.80,184
 26299,Inamuranohi,"Drama, Historical, Kids",OVA,1,8.00,47
-34502,Inazma Delivery,"Action, Comedy, Sci-Fi",TV,10,,32
+34502,Inazma Delivery,"Action, Comedy, Sci-Fi",TV,10,6.78,32
 28235,Indie Anibox: Selma Danbaekjil Coffee,"Comedy, Drama, Romance, Samurai, Sci-Fi",Movie,1,7.22,109
 32227,Inemuri Buu-chan,Kids,Movie,1,4.11,53
 16259,Inferious Wakusei Senshi Gaiden Condition Green,"Action, Sci-Fi",OVA,6,6.08,116
@@ -9656,7 +9656,7 @@ anime_id,name,genre,type,episodes,rating,members
 19817,Namakemono ga Miteta,"Music, Seinen, Slice of Life",OVA,2,6.42,65
 32876,Nameko: Sekai no Tomodachi,Comedy,TV,Unknown,5.60,261
 33583,Nana Moon,"Fantasy, Kids",TV,52,6.00,36
-34309,Nananin no Ayakashi: Chimi Chimi Mouryou!! Gendai Monogatari,"Comedy, Supernatural",TV,Unknown,,129
+34309,Nananin no Ayakashi: Chimi Chimi Mouryou!! Gendai Monogatari,"Comedy, Supernatural",TV,Unknown,6.00,129
 26335,Nanatsu no Hoshi,"Drama, Kids",OVA,1,7.33,102
 25083,Nanatsu no Umi no Tico Specials,"Adventure, Slice of Life",Special,2,6.78,137
 19797,Nanbo no Monjai! 2: Yankee Gurentai,"Action, Comedy",OVA,1,5.00,56
@@ -10895,36 +10895,36 @@ anime_id,name,genre,type,episodes,rating,members
 28543,Zukkoke Sannin-gumi no Hi Asobi Boushi Daisakusen,"Drama, Kids",OVA,1,5.83,50
 18967,Zukkoke Sannin-gumi: Zukkoke Jikuu Bouken,"Comedy, Historical, Sci-Fi",OVA,1,6.13,76
 13455,Zumomo to Nupepe,Comedy,TV,32,7.00,120
-34096,Gintama (2017),"Action, Comedy, Historical, Parody, Samurai, Sci-Fi, Shounen",TV,Unknown,,13383
-34134,One Punch Man 2,"Action, Comedy, Parody, Sci-Fi, Seinen, Super Power, Supernatural",TV,Unknown,,90706
+34096,Gintama (2017),"Action, Comedy, Historical, Parody, Samurai, Sci-Fi, Shounen",TV,Unknown,7.00,13383
+34134,One Punch Man 2,"Action, Comedy, Parody, Sci-Fi, Seinen, Super Power, Supernatural",TV,Unknown,8.68,90706
 30484,Steins;Gate 0,"Sci-Fi, Thriller",,Unknown,,60999
-25777,Shingeki no Kyojin Season 2,"Action, Drama, Fantasy, Shounen, Super Power",TV,Unknown,,170054
-34437,Code Geass: Fukkatsu no Lelouch,"Action, Drama, Mecha, Military, Sci-Fi, Super Power",,Unknown,,22748
-33486,Boku no Hero Academia 2nd Season,"Action, Comedy, School, Shounen, Super Power",TV,Unknown,,46892
-32937,Kono Subarashii Sekai ni Shukufuku wo! 2,"Adventure, Comedy, Fantasy, Magic, Supernatural",TV,Unknown,,54069
-33506,Ao no Exorcist: Kyoto Fujouou-hen,"Action, Demons, Fantasy, Shounen, Supernatural",TV,Unknown,,45127
-33417,Super Lovers 2,"Comedy, Drama, Romance, Shounen Ai",TV,Unknown,,12022
-30727,Saenai Heroine no Sodatekata ♭,"Comedy, Ecchi, Harem, Romance, School",TV,Unknown,,22890
-33352,Violet Evergarden,"Drama, Fantasy",,Unknown,,20564
-33248,K: Seven Stories,"Action, Drama, Super Power, Supernatural",,Unknown,,22133
-31765,Sword Art Online Movie: Ordinal Scale,"Action, Adventure, Fantasy, Game, Romance",Movie,1,,50944
-32887,Dungeon ni Deai wo Motomeru no wa Machigatteiru Darou ka Gaiden: Sword Oratoria,"Action, Adventure, Comedy, Fantasy",TV,Unknown,,12406
-33487,Masamune-kun no Revenge,"Comedy, Harem, Romance, School, Shounen",TV,Unknown,,20776
-30455,Kantai Collection: KanColle Zoku-hen,"Action, Military, School, Sci-Fi, Slice of Life",TV,Unknown,,15465
-33047,Fate/Extra Last Encore,"Action, Fantasy, Magic",TV,Unknown,,12653
-31783,Yowamushi Pedal: New Generation,"Comedy, Drama, Shounen, Sports",TV,Unknown,,9037
-34451,Kekkai Sensen &amp; Beyond,"Action, Fantasy, Super Power, Supernatural, Vampire",TV,Unknown,,14124
-33852,Mekakucity Reload,"Comedy, Romance, Sci-Fi, Super Power, Supernatural",TV,Unknown,,14017
-25537,Fate/stay night Movie: Heaven&#039;s Feel,"Action, Fantasy, Magic, Supernatural",Movie,1,,53365
-33743,Fuuka,"Drama, Ecchi, Music, Romance, School, Shounen",TV,Unknown,,9854
-33845,Free! (Shinsaku),"School, Sports",,Unknown,,8666
-33674,No Game No Life Movie,"Adventure, Comedy, Ecchi, Fantasy, Game, Supernatural",Movie,1,,32041
-33489,Little Witch Academia (TV),"Adventure, Comedy, Fantasy, Magic, School",TV,Unknown,,23398
-32949,Kuzu no Honkai,"Drama, Romance, School, Seinen",TV,Unknown,,20941
-30485,ChäoS;Child,"Harem, Mystery, Psychological, Sci-Fi, Supernatural",TV,Unknown,,19590
-32901,Eromanga-sensei,"Comedy, Drama, Romance",TV,Unknown,,8449
-34055,Berserk (2017),"Action, Adventure, Demons, Drama, Fantasy, Horror, Magic, Military, Romance, Supernatural",TV,Unknown,,13463
-32981,Hand Shakers,,TV,Unknown,,11661
+25777,Shingeki no Kyojin Season 2,"Action, Drama, Fantasy, Shounen, Super Power",TV,Unknown,9.78,170054
+34437,Code Geass: Fukkatsu no Lelouch,"Action, Drama, Mecha, Military, Sci-Fi, Super Power",9.67,Unknown,,22748
+33486,Boku no Hero Academia 2nd Season,"Action, Comedy, School, Shounen, Super Power",TV,Unknown,8.78,46892
+32937,Kono Subarashii Sekai ni Shukufuku wo! 2,"Adventure, Comedy, Fantasy, Magic, Supernatural",TV,Unknown,9.01,54069
+33506,Ao no Exorcist: Kyoto Fujouou-hen,"Action, Demons, Fantasy, Shounen, Supernatural",TV,Unknown,7.33,45127
+33417,Super Lovers 2,"Comedy, Drama, Romance, Shounen Ai",TV,Unknown,8.91,12022
+30727,Saenai Heroine no Sodatekata ♭,"Comedy, Ecchi, Harem, Romance, School",TV,Unknown,8.21,22890
+33352,Violet Evergarden,"Drama, Fantasy",,Unknown,9.41,20564
+33248,K: Seven Stories,"Action, Drama, Super Power, Supernatural",,Unknown,7.91,22133
+31765,Sword Art Online Movie: Ordinal Scale,"Action, Adventure, Fantasy, Game, Romance",Movie,1,8.83,50944
+32887,Dungeon ni Deai wo Motomeru no wa Machigatteiru Darou ka Gaiden: Sword Oratoria,"Action, Adventure, Comedy, Fantasy",TV,Unknown,7.90,12406
+33487,Masamune-kun no Revenge,"Comedy, Harem, Romance, School, Shounen",TV,Unknown,8.14,20776
+30455,Kantai Collection: KanColle Zoku-hen,"Action, Military, School, Sci-Fi, Slice of Life",TV,Unknown,7.99,15465
+33047,Fate/Extra Last Encore,"Action, Fantasy, Magic",TV,Unknown,7.36,12653
+31783,Yowamushi Pedal: New Generation,"Comedy, Drama, Shounen, Sports",TV,Unknown,7.20,9037
+34451,Kekkai Sensen &amp; Beyond,"Action, Fantasy, Super Power, Supernatural, Vampire",TV,Unknown,8.57,14124
+33852,Mekakucity Reload,"Comedy, Romance, Sci-Fi, Super Power, Supernatural",TV,Unknown,8.35,14017
+25537,Fate/stay night Movie: Heaven,"Action, Fantasy, Magic, Supernatural",Movie,1,8.71,53365
+33743,Fuuka,"Drama, Ecchi, Music, Romance, School, Shounen",TV,Unknown,8.35,9854
+33845,Free! (Shinsaku),"School, Sports",,Unknown,8.50,8666
+33674,No Game No Life Movie,"Adventure, Comedy, Ecchi, Fantasy, Game, Supernatural",Movie,1,9.28,32041
+33489,Little Witch Academia (TV),"Adventure, Comedy, Fantasy, Magic, School",TV,Unknown,9.1,23398
+32949,Kuzu no Honkai,"Drama, Romance, School, Seinen",TV,Unknown,8.00,20941
+30485,ChäoS;Child,"Harem, Mystery, Psychological, Sci-Fi, Supernatural",TV,Unknown,8.02,19590
+32901,Eromanga-sensei,"Comedy, Drama, Romance",TV,Unknown,7.92,8449
+34055,Berserk (2017),"Action, Adventure, Demons, Drama, Fantasy, Horror, Magic, Military, Romance, Supernatural",TV,Unknown,8.18,13463
+32981,Hand Shakers,,TV,Unknown,8.29,11661
 34176,Zero kara Hajimeru Mahou no Sho,"Action, Fantasy",TV,Unknown,,7716
 33010,FLCL (TV),"Action, Comedy, Dementia, Mecha, Parody, Sci-Fi",TV,Unknown,,13008
 31537,Shingeki no Bahamut: Manaria Friends,"Action, Adventure, Demons, Fantasy, Magic, Supernatural",TV,Unknown,,9939
