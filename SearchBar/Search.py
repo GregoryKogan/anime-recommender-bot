@@ -15,20 +15,14 @@ def convert_to_result_list(result_object):
         result_list.append([similarity, anime_name])
     result_list.sort(key=lambda x: x[0])
 
-    results_by_score = [[]] * max_similarity
+    most_similar = []
     for result in result_list:
-        similarity = result[0]
-        results_by_score[similarity - 1].append(result[1])
+        if result[0] == max_similarity:
+            most_similar.append(result[1])
+            
+    most_similar.sort(key=len)
 
-    for i in range(len(results_by_score)):
-        results_by_score[i].sort(key=len)
-
-    flat_results = []
-    for group in results_by_score:
-        for result in group:
-            flat_results.append(result)
-
-    return flat_results
+    return most_similar
 
 
 def find(line, titles):
@@ -45,6 +39,7 @@ def find(line, titles):
                 results[title] += 1
 
     results = convert_to_result_list(results)
+
     if len(results) > 0:
         return results
 
@@ -112,20 +107,54 @@ def get_user_ratings():
         user_answer = str(input('Is it ' + anime_name + '? - '))
         if user_answer == 'no':
             continue
-        user_rating = int(input('Your rating for ' + anime_name + ': '))
+        user_rating = float(input('Your rating for ' + anime_name + ': '))
         
         record = [get_id_by_name(anime_name), user_rating]
         user_data.append(record)
     return user_data
 
 
-if __name__ == '__main__':
-    user = get_user_ratings()
-    print('--------------------')
-    for record in user:
-        print(record[0] + ' - ' + str(record[1]))
-    # sub_lines = 'code r2'.split(' ')
-    # for i in range(len(sub_lines)):
-    #     sub_lines[i] = convert_to_searchable(sub_lines[i])
-    # print(sub_lines)
+def get_user_data():
+    import csv
+    import codecs
+    user_file = codecs.open('user.csv', 'r', 'utf_8_sig')
+    reader = csv.reader(user_file)
 
+    user = {}
+    next(reader)
+    for line in reader:
+        user[line[0]] = float(line[1])
+
+    user_file.close()
+    return user
+
+
+def collect_user_data():
+    user = get_user_data()
+    print('Your ratings: ')
+    for anime in user:
+        print(anime + ' - ' + str(user[anime]))
+
+    new_ratings = get_user_ratings()
+    print('New ratings collected')
+
+    for new_rating in new_ratings:
+        user[new_rating[0]] = new_rating[1]
+
+    import csv
+    import codecs
+    user_file = codecs.open('user.csv', 'w', 'utf_8_sig')
+    writer = csv.writer(user_file)
+    writer.writerow(['anime_id', 'rating'])
+    for anime in user:
+        writer.writerow([anime, user[anime]])
+    user_file.close()
+
+    user = get_user_data()
+    print('Your ratings: ')
+    for anime in user:
+        print(anime + ' - ' + str(user[anime]))
+
+
+if __name__ == '__main__':
+    collect_user_data()
