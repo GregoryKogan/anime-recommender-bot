@@ -61,7 +61,7 @@ def get_rating_by_id(anime_id):
             k = re.findall(r'Scored \d.\d+', v.text)[0]
             k = re.findall(r'\d.\d+', k)[0]
             return float(k)
-        except:
+        finally:
             return 5.00
 
 
@@ -105,6 +105,14 @@ def give_recommendations():
             recommendations[second_anime_id] += score
 
     recommendation_list = convert_to_recommendation_list(recommendations)
+
+    ind = 0
+    while ind < len(recommendation_list):
+        for user_rating in user_data:
+            if recommendation_list[ind][1] == user_rating[0]:
+                recommendation_list.pop(ind)
+                ind -= 1
+        ind += 1
     return recommendation_list
 
 
@@ -130,4 +138,4 @@ def write_ratings():
 if __name__ == '__main__':
     recs = give_recommendations()
     for i in range(10):
-        print('You should watch: ' + get_name_by_id(recs[i][1]) + ', Score: ' + str(recs[i][0]))
+        print(str(i + 1) + ') ' + get_name_by_id(recs[i][1]) + ', Score: ' + str(recs[i][0]))
