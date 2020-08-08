@@ -26,8 +26,15 @@ def get_anime_ratings():
     import codecs
     file = codecs.open('crowd_ratings.csv', 'r', 'utf_8_sig')
     reader = csv.reader(file)
-    anime_ratings = next(reader)
+    anime_ratings_list = next(reader)
     file.close()
+
+    anime_ids = get_line('RecommenderDB.csv', 0)
+    anime_ids.pop(0)
+    anime_ratings = {}
+    for i, anime_rating in enumerate(anime_ratings_list):
+        anime_ratings[anime_ids[i]] = float(anime_rating)
+
     return anime_ratings
 
 
@@ -100,7 +107,7 @@ def give_recommendations():
         coefficients.pop(0)
         for i, coefficient in enumerate(coefficients):
             second_anime_id = anime_ids[i]
-            crowd_rating = float(anime_ratings[anime_ids.index(second_anime_id)])
+            crowd_rating = anime_ratings[second_anime_id]
             score = float(coefficient) * user_rating * crowd_rating
             recommendations[second_anime_id] += score
 
