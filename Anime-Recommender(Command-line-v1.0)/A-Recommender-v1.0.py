@@ -30,6 +30,29 @@ Commands:
 ''')
 
 
+def sort_user_ratings():
+    import csv
+    import codecs
+    user_file = codecs.open('user.csv', 'r', 'utf_8_sig')
+    reader = csv.reader(user_file)
+    next(reader)
+    data = []
+    for line in reader:
+        anime_id = line[0]
+        user_rating = float(line[1])
+        record = [user_rating, anime_id]
+        data.append(record)
+    data.sort()
+    data.reverse()
+    user_file.close()
+    user_file = codecs.open('user.csv', 'w', 'utf_8_sig')
+    writer = csv.writer(user_file)
+    writer.writerow(['anime_id', 'rating'])
+    for record in data:
+        writer.writerow([record[1], record[0]])
+    user_file.close()
+
+
 def update_user(user):
     import csv
     import codecs
@@ -164,8 +187,6 @@ def ban_anime():
             data.append(line)
         ban_file.close()
 
-
-
         ban_file = codecs.open('banned.csv', 'w', 'utf_8_sig')
         writer = csv.writer(ban_file)
         data.append([str(banned_anime)])
@@ -245,6 +266,7 @@ def manage_user_input(user_input):
         global running
         running = False
     elif user_input == 'account':
+        sort_user_ratings()
         user = Search.get_user_data()
         if len(user) > 0:
             print('Your ratings: ')
