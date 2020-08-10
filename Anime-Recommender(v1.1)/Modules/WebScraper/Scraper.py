@@ -33,12 +33,17 @@ def get_meta_info(anime_link):
     anime_page_html = requests.get(anime_link).text
     anime_page = BeautifulSoup(anime_page_html, 'lxml')
 
-    main_title = anime_page.find('span', itemprop="name").contents[0]
+    main_title = anime_page.find('span', itemprop="name")
+    if main_title:
+        main_title = main_title.contents[0]
+
     title_recs = []
     for title_div in anime_page.find_all('div', class_='spaceit_pad'):
         title_recs.append(title_div.text)
     title_recs = title_recs[0:2:1]
-    all_titles = [main_title]
+    all_titles = []
+    if main_title:
+        all_titles.append(main_title)
     for record in title_recs:
         data = record[1::]
         data = data[0:-3:]
@@ -46,7 +51,10 @@ def get_meta_info(anime_link):
             data = data[9::]
         if data.startswith('Synonyms: '):
             data = data[10::]
-        sub_titles = data.split(', ')
+        if data.startswith('Japanese: '):
+            sub_titles = []
+        else:
+            sub_titles = data.split(', ')
         for title in sub_titles:
             all_titles.append(title)
     if len(all_titles) > 1:
@@ -90,10 +98,12 @@ def fill_meta_file():
         writer = csv.writer(meta_file)
         writer.writerow(['anime_id', 'titles', 'rating', 'members', 'genres'])
 
-        for i, link in enumerate(anime_links):
-            print(str(round((i + 1) / len(anime_links) * 100, 2)) + '% Done')
+    for i, link in enumerate(anime_links):
+        print(str(round((i + 1) / len(anime_links) * 100, 2)) + '% Done')
 
-            meta_info = get_meta_info(link)
+        meta_info = get_meta_info(link)
+        with open('anime-meta.csv', 'a', newline='', encoding='utf_8_sig') as meta_file:
+            writer = csv.writer(meta_file, delimiter=',', quotechar='"')
             writer.writerow(meta_info)
 
 
