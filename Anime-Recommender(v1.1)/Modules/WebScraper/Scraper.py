@@ -143,4 +143,6 @@ def fill_meta_file():
 
 
 if __name__ == '__main__':
-    fill_meta_file()
+    print(get_last_filled_line())
+
+
