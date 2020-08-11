@@ -83,6 +83,31 @@ def get_meta_info(anime_link):
     return meta_info
 
 
+def get_last_filled_line():
+    import csv
+    import codecs
+
+    with codecs.open('anime-meta.csv', 'r', 'utf_8_sig') as anime_meta_file:
+        reader = csv.reader(anime_meta_file)
+        total_lines = 0
+        for line in reader:
+            last_id = line[0]
+            total_lines += 1
+
+    anime_ids = []
+    with codecs.open('anime-list.csv', 'r', 'utf_8_sig') as anime_list:
+        reader = csv.reader(anime_list)
+        next(reader)
+        for line in reader:
+            anime_ids.append(line[0])
+
+    if total_lines > 1:
+        ind = anime_ids.index(last_id) + 1
+    else:
+        ind = 0
+    return ind
+
+
 def fill_meta_file():
     import csv
     import codecs
@@ -94,17 +119,27 @@ def fill_meta_file():
         for line in reader:
             anime_links.append(line[2])
 
-    with codecs.open('anime-meta.csv', 'w', 'utf_8_sig') as meta_file:
-        writer = csv.writer(meta_file)
-        writer.writerow(['anime_id', 'titles', 'rating', 'members', 'genres'])
+    with codecs.open('anime-meta.csv', 'r', 'utf_8_sig') as meta_file:
+        reader = csv.reader(meta_file)
+        total_lines = 0
+        for line in reader:
+            total_lines += 1
 
+    if total_lines == 0:
+        with codecs.open('anime-meta.csv', 'w', 'utf_8_sig') as meta_file:
+            writer = csv.writer(meta_file)
+            writer.writerow(['anime_id', 'titles', 'rating', 'members', 'genres'])
+
+    last_filled_line = get_last_filled_line()
+    anime_links = anime_links[last_filled_line::]
+    print('Starting from: ' + anime_links[0])
     for i, link in enumerate(anime_links):
-        print(str(round((i + 1) / len(anime_links) * 100, 2)) + '% Done')
-
+        print(link)
         meta_info = get_meta_info(link)
         with open('anime-meta.csv', 'a', newline='', encoding='utf_8_sig') as meta_file:
             writer = csv.writer(meta_file, delimiter=',', quotechar='"')
             writer.writerow(meta_info)
+        print(str(round((last_filled_line + i + 2) / 10000 * 100, 2)) + '% Done')
 
 
 if __name__ == '__main__':
