@@ -224,12 +224,18 @@ def fill_ratings_file():
                 next_link = None
 
         if next_link:
-            print('Parsing ' + next_link)
-            ratings = get_ratings_for(next_link)
-            print('Got ' + str(len(ratings)) + ' ratings')
-            with open('ratings-names.csv', 'a', newline='', encoding='utf_8_sig') as ratings_file:
-                writer = csv.writer(ratings_file, delimiter=',', quotechar='"')
-                writer.writerows(ratings)
+            try:
+                print('Parsing ' + next_link)
+                ratings = get_ratings_for(next_link)
+                print('Got ' + str(len(ratings)) + ' ratings')
+                with open('ratings-names.csv', 'a', newline='', encoding='utf_8_sig') as ratings_file:
+                    writer = csv.writer(ratings_file, delimiter=',', quotechar='"')
+                    writer.writerows(ratings)
+            except AttributeError:
+                import time
+                print('Sleeping')
+                time.sleep(60)
+                print('Trying again')
 
 
 if __name__ == '__main__':
