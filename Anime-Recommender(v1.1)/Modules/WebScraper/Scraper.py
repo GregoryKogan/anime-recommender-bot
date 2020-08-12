@@ -142,7 +142,95 @@ def fill_meta_file():
         print(str(round((last_filled_line + i + 2) / 10000 * 100, 2)) + '% Done')
 
 
+def is_not_found(page):
+    message_field = page.find('p', class_='message')
+    if message_field:
+        return True
+    else:
+        return False
+
+
+def get_ratings_for(link):
+    anime_user_ratings = []
+
+    ind = 0
+    while len(anime_user_ratings) < 1000:
+        print('Parsing page ' + str(ind + 1) + ', got ' + str(len(anime_user_ratings)) + ' ratings')
+        anime_stats_html = requests.get(link + '/stats?show=' + str(ind * 75)).text
+        stats_page = BeautifulSoup(anime_stats_html, 'lxml')
+        ind += 1
+
+        if not is_not_found(stats_page):
+            ratings_table = stats_page.find('table', class_="table-recently-updated")
+            user_lines = ratings_table.find_all('tr')
+            user_lines = user_lines[1::]
+
+            for user_line in user_lines:
+                user_info = user_line.find('td', class_="borderClass di-t w100").find('div', class_="di-tc va-m al pl4")
+                user_name = user_info.a.text
+
+                score_field = user_line.find('td', class_="borderClass ac")
+                user_rating = score_field.text
+
+                anime_id = link.split('/')[4]
+
+                if user_rating != '-':
+                    record = [anime_id, user_name, user_rating]
+                    anime_user_ratings.append(record)
+
+        else:
+            print('Page not found')
+            break
+    return anime_user_ratings
+
+
+def fill_ratings_file():
+    import csv
+    import codecs
+
+    anime_ids = []
+    anime_links = []
+    with codecs.open('anime-list.csv', 'r', 'utf_8_sig') as anime_list:
+        reader = csv.reader(anime_list)
+        next(reader)
+        for line in reader:
+            anime_ids.append(line[0])
+            anime_links.append(line[2])
+
+    last_id = None
+    while last_id != anime_ids[-1]:
+        line_count = 0
+        last_line = None
+        with codecs.open('ratings-names.csv', 'r', 'utf_8_sig') as ratings_file:
+            reader = csv.reader(ratings_file)
+            for line in reader:
+                line_count += 1
+                last_line = line
+
+        if line_count == 0:
+            last_line = None
+            with codecs.open('ratings-names.csv', 'w', 'utf_8_sig') as ratings_file:
+                writer = csv.writer(ratings_file)
+                writer.writerow(['anime_id', 'user_name', 'rating'])
+
+        if not last_line:
+            next_link = anime_links[0]
+        else:
+            last_id = last_line[0]
+            id_ind = anime_ids.index(last_id)
+            if id_ind + 1 < len(anime_links):
+                next_link = anime_links[id_ind + 1]
+            else:
+                next_link = None
+
+        if next_link:
+            print('Parsing ' + next_link)
+            ratings = get_ratings_for(next_link)
+            print('Got ' + str(len(ratings)) + ' ratings')
+            with open('ratings-names.csv', 'a', newline='', encoding='utf_8_sig') as ratings_file:
+                writer = csv.writer(ratings_file, delimiter=',', quotechar='"')
+                writer.writerows(ratings)
+
+
 if __name__ == '__main__':
-    print(get_last_filled_line())
-
-
+    fill_ratings_file()
