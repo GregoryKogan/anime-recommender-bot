@@ -1,3 +1,45 @@
+def find_mean(line):
+    sum_of_values = 0
+    for value in line:
+        sum_of_values += value
+    mean = sum_of_values / len(line)
+    return mean
+
+
+def calculate_deviation(line, mean):
+    result = []
+    for value in line:
+        deviation_score = value - mean
+        result.append(deviation_score)
+    return result
+
+
+def square_all(line):
+    result = []
+    for value in line:
+        square = value ** 2
+        result.append(square)
+    return result
+
+
+def get_sum(line):
+    sum_of_values = 0
+    for value in line:
+        sum_of_values += value
+    return sum_of_values
+
+
+def cross_product(line_1, line_2):
+    if len(line_1) != len(line_2):
+        print('ERROR: lines have different length')
+        return
+    result = []
+    for i in range(len(line_1)):
+        multiplication_value = line_1[i] * line_2[i]
+        result.append(multiplication_value)
+    return result
+
+
 def get_ratings_from_names_for(anime_id):
     import csv
     import codecs
@@ -114,12 +156,85 @@ def reorganize_ratings():
             reorganized_ratings_file.write(line)
 
 
+def get_ratings(anime_id):
+    ratings = []
+    with open('reorganized-ratings.txt', 'r') as ratings_file:
+        lines = ratings_file.readlines()
+        for line in lines:
+            if line.startswith('[' + anime_id + ']'):
+                line = line[:-1:]
+                data = line.split(',')
+                data = data[1::]
+                for record in data:
+                    user_id, rating = record.split('-')
+                    ratings.append([user_id, rating])
+                ratings.sort()
+                return ratings
+    return None
+
+
+def get_matching_ratings(anime_id_1, anime_id_2):
+    ratings_1 = get_ratings(anime_id_1)
+    ratings_2 = get_ratings(anime_id_2)
+
+    result_1 = []
+    result_2 = []
+    index_1 = 0
+    index_2 = 0
+    while index_1 < len(ratings_1) and index_2 < len(ratings_2):
+        if int(ratings_1[index_1][0]) < int(ratings_2[index_2][0]):
+            index_1 += 1
+            continue
+        if int(ratings_2[index_2][0]) < int(ratings_1[index_1][0]):
+            index_2 += 1
+            continue
+        if int(ratings_1[index_1][0]) == int(ratings_2[index_2][0]):
+            result_1.append(float(ratings_1[index_1][1]))
+            result_2.append(float(ratings_2[index_2][1]))
+            index_1 += 1
+            index_2 += 1
+            continue
+    return result_1, result_2
+
+
+def pearson_correlation(line_1, line_2):
+    mean_1 = find_mean(line_1)
+    mean_2 = find_mean(line_2)
+    deviation_scores_1 = calculate_deviation(line_1, mean_1)
+    deviation_scores_2 = calculate_deviation(line_2, mean_2)
+    square_scores_1 = square_all(deviation_scores_1)
+    square_scores_2 = square_all(deviation_scores_2)
+    sum_of_squares_1 = get_sum(square_scores_1)
+    sum_of_squares_2 = get_sum(square_scores_2)
+    cross_products = cross_product(deviation_scores_1, deviation_scores_2)
+    sum_of_products = get_sum(cross_products)
+
+    if (sum_of_squares_1 ** 0.5) * (sum_of_squares_2 ** 0.5) != 0:
+        correlation_coefficient = sum_of_products / ((sum_of_squares_1 ** 0.5) * (sum_of_squares_2 ** 0.5))
+    else:
+        correlation_coefficient = 0
+
+    return correlation_coefficient
+
+
+def get_correlation_score(anime_id, anime_id_2):
+    first_ratings, second_ratings = get_matching_ratings(anime_id, anime_id_2)
+    if len(first_ratings) < 7 or len(second_ratings) < 7:
+        return 0
+    correlation_score = pearson_correlation(first_ratings, second_ratings)
+    return correlation_score
+
+
 # TODO:
-# def get_ratings(anime_id):
-# def get_matching_ratings(anime_id_1, anime_id_2)
-# def get_correlation_score(anime_id, anime_id_2)
-# def pearson_correlation(line_1, line_2)
+# def get_genre_similarity_score(anime_id_1, anime_id_2)
+# def get_recommendation_score(anime_id_1, anime_id_2)
+# def compute_data_base()
 
 
 if __name__ == '__main__':
-    reorganize_ratings()
+    import time
+    begin = time.process_time()
+    score = get_correlation_score('1535', '16498')
+    end = time.process_time()
+    print(score)
+    print(end - begin)
