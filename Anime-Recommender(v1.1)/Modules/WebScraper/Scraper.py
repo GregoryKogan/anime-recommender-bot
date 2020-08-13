@@ -181,6 +181,10 @@ def get_ratings_for(link):
         else:
             print('Page not found')
             break
+
+        if len(anime_user_ratings) < 10 and ind > 20:
+            print('No ratings found')
+            break
     return anime_user_ratings
 
 
