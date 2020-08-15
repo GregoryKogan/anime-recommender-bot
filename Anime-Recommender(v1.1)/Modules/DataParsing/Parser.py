@@ -259,16 +259,31 @@ def get_genre_similarity_score(anime_id_1, anime_id_2):
     return similarity_score
 
 
+def get_max_members():
+    import csv
+    import codecs
+
+    max_members = 0
+    with codecs.open('anime-meta.csv', 'r', 'utf_8_sig') as meta_file:
+        reader = csv.reader(meta_file)
+        next(reader)
+        for line in reader:
+            members = int(line[3])
+            max_members = max(max_members, members)
+    return max_members
+
+
 def get_recommendation_score(anime_id_1, anime_id_2):
-    meta_1 = get_meta(anime_id_1)
     meta_2 = get_meta(anime_id_2)
     genre_score = get_genre_similarity_score(anime_id_1, anime_id_2)
     correlation_score = get_correlation_score(anime_id_1, anime_id_2)
-    rating_1 = meta_1['rating']
     rating_2 = meta_2['rating']
+    max_members = get_max_members()
     members_2 = meta_2['members']
 
-    recommendation_score = rating_1 * correlation_score * genre_score * rating_2 * members_2 / 1000000
+    recommendation_score = (((correlation_score + 1) * 10)**2 + (genre_score * 100) + rating_2
+                            + (members_2 * 3 / max_members)) / 513 * 100
+
     return recommendation_score
     
     
@@ -277,5 +292,5 @@ def get_recommendation_score(anime_id_1, anime_id_2):
 
 
 if __name__ == '__main__':
-    score = get_recommendation_score('1535', '35788')
+    score = get_recommendation_score('20', '1735')
     print(score)
