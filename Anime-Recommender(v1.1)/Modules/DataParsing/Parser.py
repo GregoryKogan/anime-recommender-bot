@@ -225,16 +225,57 @@ def get_correlation_score(anime_id, anime_id_2):
     return correlation_score
 
 
+def get_meta(anime_id):
+    import csv
+    import codecs
+
+    meta_info = {}
+    with codecs.open('anime-meta.csv', 'r', 'utf_8_sig') as meta_file:
+        reader = csv.reader(meta_file)
+        next(reader)
+        for line in reader:
+            if line[0] == anime_id:
+                meta_info['title'] = line[1]
+                meta_info['rating'] = float(line[2])
+                meta_info['members'] = int(line[3])
+                meta_info['genres'] = line[4]
+
+                return meta_info
+    return None
+
+
+def get_genre_similarity_score(anime_id_1, anime_id_2):
+    genres_1 = get_meta(anime_id_1)['genres']
+    genres_2 = get_meta(anime_id_2)['genres']
+    genres_1 = genres_1.split(',')
+    genres_2 = genres_2.split(',')
+
+    matching_genres = 0
+    for genre in genres_1:
+        if genres_2.count(genre) != 0:
+            matching_genres += 1
+
+    similarity_score = matching_genres * 2 / (len(genres_1) + len(genres_2))
+    return similarity_score
+
+
+def get_recommendation_score(anime_id_1, anime_id_2):
+    meta_1 = get_meta(anime_id_1)
+    meta_2 = get_meta(anime_id_2)
+    genre_score = get_genre_similarity_score(anime_id_1, anime_id_2)
+    correlation_score = get_correlation_score(anime_id_1, anime_id_2)
+    rating_1 = meta_1['rating']
+    rating_2 = meta_2['rating']
+    members_2 = meta_2['members']
+
+    recommendation_score = rating_1 * correlation_score * genre_score * rating_2 * members_2 / 1000000
+    return recommendation_score
+    
+    
 # TODO:
-# def get_genre_similarity_score(anime_id_1, anime_id_2)
-# def get_recommendation_score(anime_id_1, anime_id_2)
 # def compute_data_base()
 
 
 if __name__ == '__main__':
-    import time
-    begin = time.process_time()
-    score = get_correlation_score('1535', '16498')
-    end = time.process_time()
+    score = get_recommendation_score('1535', '35788')
     print(score)
-    print(end - begin)
