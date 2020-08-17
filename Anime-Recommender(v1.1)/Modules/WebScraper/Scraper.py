@@ -122,7 +122,7 @@ def fill_meta_file():
     with codecs.open('anime-meta.csv', 'r', 'utf_8_sig') as meta_file:
         reader = csv.reader(meta_file)
         total_lines = 0
-        for line in reader:
+        for _ in reader:
             total_lines += 1
 
     if total_lines == 0:
@@ -140,6 +140,34 @@ def fill_meta_file():
             writer = csv.writer(meta_file, delimiter=',', quotechar='"')
             writer.writerow(meta_info)
         print(str(round((last_filled_line + i + 2) / 10000 * 100, 2)) + '% Done')
+
+
+def get_anime_ids():
+    import csv
+    import codecs
+
+    anime_ids = []
+    with codecs.open('anime-list.csv', 'r', 'utf_8_sig') as anime_list:
+        reader = csv.reader(anime_list)
+        next(reader)
+        for line in reader:
+            anime_ids.append(line[0])
+
+    return anime_ids
+
+
+def get_anime_links():
+    import csv
+    import codecs
+
+    anime_links = []
+    with codecs.open('anime-list.csv', 'r', 'utf_8_sig') as anime_list:
+        reader = csv.reader(anime_list)
+        next(reader)
+        for line in reader:
+            anime_links.append(line[2])
+
+    return anime_links
 
 
 def is_not_found(page):
@@ -188,58 +216,64 @@ def get_ratings_for(link):
     return anime_user_ratings
 
 
+def are_ratings_done(complete_list):
+    for anime in complete_list:
+        if not complete_list[anime]:
+            return False
+    return True
+
+
+def get_link_by_id(anime_id):
+    anime_ids = get_anime_ids()
+    anime_links = get_anime_links()
+    return anime_links[anime_ids.index(anime_id)]
+
+
 def fill_ratings_file():
     import csv
     import codecs
 
-    anime_ids = []
-    anime_links = []
-    with codecs.open('anime-list.csv', 'r', 'utf_8_sig') as anime_list:
-        reader = csv.reader(anime_list)
+    with open('ratings-names.csv', 'r') as ratings_file:
+        lines = ratings_file.readlines()
+        lines_filled = len(lines)
+    
+    if lines_filled < 5:
+        with open('ratings-names.csv', 'w', newline='') as ratings_file:
+            writer = csv.writer(ratings_file)
+            writer.writerow(['anime_id', 'user_name', 'rating'])
+
+    anime_ids = get_anime_ids()
+    complete_list = {}
+    for anime_id in anime_ids:
+        complete_list[anime_id] = False
+
+    with codecs.open('ratings-names.csv', 'r', 'utf_8_sig') as ratings_file:
+        reader = csv.reader(ratings_file)
         next(reader)
         for line in reader:
-            anime_ids.append(line[0])
-            anime_links.append(line[2])
+            anime_id = line[0]
+            complete_list[anime_id] = True
 
-    last_id = None
-    while last_id != anime_ids[-1]:
-        line_count = 0
-        last_line = None
-        with codecs.open('ratings-names.csv', 'r', 'utf_8_sig') as ratings_file:
-            reader = csv.reader(ratings_file)
-            for line in reader:
-                line_count += 1
-                last_line = line
+    next_anime_id = anime_ids[0]
+    while not are_ratings_done(complete_list):
+        for anime_id in anime_ids:
+            if not complete_list[anime_id]:
+                next_anime_id = anime_id
+                break
 
-        if line_count == 0:
-            last_line = None
-            with codecs.open('ratings-names.csv', 'w', 'utf_8_sig') as ratings_file:
+        next_anime_link = get_link_by_id(next_anime_id)
+        print(f'Parsing {next_anime_link}')
+        try:
+            ratings = get_ratings_for(next_anime_link)
+
+            with open('ratings-names.csv', 'a', encoding='utf_8_sig', newline='') as ratings_file:
                 writer = csv.writer(ratings_file)
-                writer.writerow(['anime_id', 'user_name', 'rating'])
-
-        if not last_line:
-            next_link = anime_links[0]
-        else:
-            last_id = last_line[0]
-            id_ind = anime_ids.index(last_id)
-            if id_ind + 1 < len(anime_links):
-                next_link = anime_links[id_ind + 1]
-            else:
-                next_link = None
-
-        if next_link:
-            try:
-                print('Parsing ' + next_link)
-                ratings = get_ratings_for(next_link)
-                print('Got ' + str(len(ratings)) + ' ratings')
-                with open('ratings-names.csv', 'a', newline='', encoding='utf_8_sig') as ratings_file:
-                    writer = csv.writer(ratings_file, delimiter=',', quotechar='"')
-                    writer.writerows(ratings)
-            except AttributeError:
-                import time
-                print('Sleeping')
-                time.sleep(60)
-                print('Trying again')
+                writer.writerows(ratings)
+                print(f'Got {len(ratings)} ratings')
+                complete_list[next_anime_id] = True
+        except AttributeError:
+            import time
+            time.sleep(60)
 
 
 if __name__ == '__main__':
