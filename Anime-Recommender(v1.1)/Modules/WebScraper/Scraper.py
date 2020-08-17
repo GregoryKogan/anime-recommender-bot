@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+import concurrent.futures
 
 
 def get_anime_list():
@@ -180,10 +181,11 @@ def is_not_found(page):
 
 def get_ratings_for(link):
     anime_user_ratings = []
+    name = link.split('/')[-1]
 
     ind = 0
     while len(anime_user_ratings) < 1000:
-        print('Parsing page ' + str(ind + 1) + ', got ' + str(len(anime_user_ratings)) + ' ratings')
+        print(f'Parsing page {ind + 1}, got {len(anime_user_ratings)} ratings for {name}')
         anime_stats_html = requests.get(link + '/stats?show=' + str(ind * 75)).text
         stats_page = BeautifulSoup(anime_stats_html, 'lxml')
         ind += 1
@@ -229,6 +231,31 @@ def get_link_by_id(anime_id):
     return anime_links[anime_ids.index(anime_id)]
 
 
+def write_ratings_for(anime_id):
+    import csv
+
+    done = False
+
+    next_anime_link = get_link_by_id(anime_id)
+    name = next_anime_link.split('/')[-1]
+    print(f'Parsing {next_anime_link}')
+    while not done:
+        try:
+            ratings = get_ratings_for(next_anime_link)
+
+            with open('ratings-names.csv', 'a', encoding='utf_8_sig', newline='') as ratings_file:
+                writer = csv.writer(ratings_file)
+                writer.writerows(ratings)
+                print(f'Got {len(ratings)} ratings for {name}')
+                done = True
+        except AttributeError:
+            import time
+            print(f'Sleeping for {name}')
+            time.sleep(60)
+            print(f'Done sleeping for {name}')
+    return anime_id
+
+
 def fill_ratings_file():
     import csv
     import codecs
@@ -254,26 +281,24 @@ def fill_ratings_file():
             anime_id = line[0]
             complete_list[anime_id] = True
 
-    next_anime_id = anime_ids[0]
-    while not are_ratings_done(complete_list):
-        for anime_id in anime_ids:
-            if not complete_list[anime_id]:
-                next_anime_id = anime_id
-                break
+    print('Getting undone titles')
 
-        next_anime_link = get_link_by_id(next_anime_id)
-        print(f'Parsing {next_anime_link}')
-        try:
-            ratings = get_ratings_for(next_anime_link)
+    undone_anime_ids = []
+    for anime_id in anime_ids:
+        if not complete_list[anime_id]:
+            undone_anime_ids.append(anime_id)
 
-            with open('ratings-names.csv', 'a', encoding='utf_8_sig', newline='') as ratings_file:
-                writer = csv.writer(ratings_file)
-                writer.writerows(ratings)
-                print(f'Got {len(ratings)} ratings')
-                complete_list[next_anime_id] = True
-        except AttributeError:
-            import time
-            time.sleep(60)
+    print(f'Found {len(undone_anime_ids)} undone titles')
+    print('Starting threads...')
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        threads = []
+        for undone_id in undone_anime_ids:
+            threads.append(executor.submit(write_ratings_for, undone_id))
+
+        for thread in concurrent.futures.as_completed(threads):
+            result = thread.result()
+            print(f'Ratings writing done for anime id: {result}')
+            complete_list[result] = True
 
 
 if __name__ == '__main__':
