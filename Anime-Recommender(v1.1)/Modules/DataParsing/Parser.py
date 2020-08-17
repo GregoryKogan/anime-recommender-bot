@@ -1,3 +1,17 @@
+def get_list_from_csv(file_name):
+    import codecs
+    import csv
+    with codecs.open(file_name, 'r', 'utf_8_sig') as file:
+        reader = csv.reader(file)
+        data = list(reader)
+    return data
+
+
+def get_meta_line(index):
+    global meta_file
+    return meta_file[index]
+
+
 def find_mean(line):
     sum_of_values = 0
     for value in line:
@@ -128,7 +142,7 @@ def fill_ratings_with_ids_file():
     print('Filling completed')
 
 
-def reorganize_ratings():
+def get_anime_ids():
     import csv
     import codecs
 
@@ -138,6 +152,11 @@ def reorganize_ratings():
         for line in reader:
             anime_ids.append(line[0])
     anime_ids = anime_ids[1::]
+    return anime_ids
+
+
+def reorganize_ratings():
+    global anime_ids
 
     for i, anime_id in enumerate(anime_ids, start=1):
         print(str(i / len(anime_ids) * 100) + '% Done')
@@ -225,28 +244,41 @@ def get_correlation_score(anime_id, anime_id_2):
     return correlation_score
 
 
-def get_meta(anime_id):
-    import csv
-    import codecs
+def get_meta_by_index(anime_index):
+    meta_info = {}
+    anime_meta_line = get_meta_line(anime_index + 1)
+
+    meta_info['title'] = anime_meta_line[1]
+    try:
+        meta_info['rating'] = float(anime_meta_line[2])
+    except ValueError:
+        meta_info['rating'] = 0
+    meta_info['members'] = int(anime_meta_line[3])
+    meta_info['genres'] = anime_meta_line[4]
+
+    return meta_info
+
+
+def get_meta_by_id(anime_id):
+    global anime_ids
 
     meta_info = {}
-    with codecs.open('anime-meta.csv', 'r', 'utf_8_sig') as meta_file:
-        reader = csv.reader(meta_file)
-        next(reader)
-        for line in reader:
-            if line[0] == anime_id:
-                meta_info['title'] = line[1]
-                meta_info['rating'] = float(line[2])
-                meta_info['members'] = int(line[3])
-                meta_info['genres'] = line[4]
+    anime_meta_line = get_meta_line(anime_ids.index(anime_id) + 1)
 
-                return meta_info
-    return None
+    meta_info['title'] = anime_meta_line[1]
+    try:
+        meta_info['rating'] = float(anime_meta_line[2])
+    except ValueError:
+        meta_info['rating'] = 0
+    meta_info['members'] = int(anime_meta_line[3])
+    meta_info['genres'] = anime_meta_line[4]
+
+    return meta_info
 
 
-def get_genre_similarity_score(anime_id_1, anime_id_2):
-    genres_1 = get_meta(anime_id_1)['genres']
-    genres_2 = get_meta(anime_id_2)['genres']
+def get_genre_similarity_score(first_ind, second_ind):
+    genres_1 = get_meta_by_index(first_ind)['genres']
+    genres_2 = get_meta_by_index(second_ind)['genres']
     genres_1 = genres_1.split(',')
     genres_2 = genres_2.split(',')
 
@@ -274,7 +306,7 @@ def get_max_members():
 
 
 def get_recommendation_score(anime_id_1, anime_id_2):
-    meta_2 = get_meta(anime_id_2)
+    meta_2 = get_meta_by_id(anime_id_2)
     genre_score = get_genre_similarity_score(anime_id_1, anime_id_2)
     correlation_score = get_correlation_score(anime_id_1, anime_id_2)
     rating_2 = meta_2['rating']
@@ -285,12 +317,56 @@ def get_recommendation_score(anime_id_1, anime_id_2):
                             + (members_2 * 3 / max_members)) / 513 * 100
 
     return recommendation_score
-    
-    
-# TODO:
-# def compute_data_base()
+
+
+def get_correlation_line(anime_id):
+    global anime_ids
+    scores = []
+    for i, second_id in enumerate(anime_ids, start=1):
+        print(f'Getting correlation scores for title: {i} ')
+        score = get_correlation_score(anime_id, second_id)
+        scores.append(score)
+    return scores
+
+
+def get_genre_score_line(first_ind):
+    print(f'Getting scores for title number {first_ind + 1}')
+    global anime_ids
+    scores = []
+    for second_ind in range(len(anime_ids)):
+        score = get_genre_similarity_score(first_ind, second_ind)
+        score = round(score, 2)
+        scores.append(score)
+    return scores
+
+
+def fill_genre_scores_table():
+    import csv
+    import codecs
+
+    global anime_ids
+
+    scores = []
+
+    for i in range(len(anime_ids)):
+        scores.append(get_genre_score_line(i))
+        
+    with codecs.open('genre_score_table.csv', 'w', 'utf_8_sig') as score_table:
+        writer = csv.writer(score_table)
+        header = anime_ids.copy()
+        header.insert(0, 'anime_id')
+        writer.writerow(header)
+        writer.writerows(scores)
+
+    print('DONE')
 
 
 if __name__ == '__main__':
-    score = get_recommendation_score('20', '1735')
-    print(score)
+    anime_ids = get_anime_ids()
+    meta_file = get_list_from_csv('anime-meta.csv')
+
+    import time
+    begin = time.process_time()
+    print(get_genre_score_line(0))
+    end = time.process_time()
+    print(f'Time: {end - begin} seconds')
