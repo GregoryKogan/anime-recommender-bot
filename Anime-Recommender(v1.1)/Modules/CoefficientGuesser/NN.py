@@ -167,6 +167,27 @@ class NeuralNetwork:
         bias_o.fill_random()
         self.biases.append(bias_o)
 
+    def set_vars(self, data):
+        self.num_of_input_neurons = data['num_of_input_neurons']
+        self.num_of_output_neurons = data['num_of_output_neurons']
+        self.num_of_hidden_layers = data['num_of_hidden_layers']
+        self.num_of_hidden_neurons_per_layer = data['num_of_hidden_neurons_per_layer']
+        self.learning_rate = data['learning_rate']
+
+        for weight in data['weights']:
+            new_weight = Matrix(weight['rows'], weight['columns'])
+            for i in range(new_weight.rows):
+                for j in range(new_weight.columns):
+                    new_weight.values[i][j] = weight['values'][i][j]
+            self.weights.append(new_weight)
+
+        for bias in data['biases']:
+            new_bias = Matrix(bias['rows'], bias['columns'])
+            for i in range(new_bias.rows):
+                for j in range(new_bias.columns):
+                    new_bias.values[i][j] = bias['values'][i][j]
+            self.biases.append(new_bias)
+
     def predict(self, input_array):
         input_matrix = Matrix.make_matrix(input_array)
 
@@ -236,6 +257,32 @@ class NeuralNetwork:
             weight_delta_i = Matrix.multiply(hidden_gradient_i, transposed_previous)
             self.weights[i].add(weight_delta_i)
             self.biases[i].add(hidden_gradient_i)
+
+    def serialize(self, file_name):
+        import json
+        data = vars(self).copy()
+        weights = []
+        for weight in self.weights:
+            weight_data = vars(weight)
+            weights.append(weight_data)
+        data['weights'] = weights
+        biases = []
+        for bias in self.biases:
+            bias_data = vars(bias)
+            biases.append(bias_data)
+        data['biases'] = biases
+        
+        with open(file_name, 'w') as save_file:
+            json.dump(data, save_file, indent=2)
+
+    @staticmethod
+    def deserialize(file_name):
+        import json
+        result = NeuralNetwork()
+        with open(file_name) as save_file:
+            data = json.load(save_file)
+        result.set_vars(data)
+        return result
 
 
 if __name__ == '__main__':
