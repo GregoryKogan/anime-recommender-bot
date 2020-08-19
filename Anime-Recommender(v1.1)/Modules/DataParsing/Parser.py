@@ -7,6 +7,27 @@ def get_list_from_csv(file_name):
     return data
 
 
+def get_dict_from_ratings():
+    data = {}
+    with open('reorganized-ratings.txt', 'r') as reorganized_ratings_file:
+        lines = reorganized_ratings_file.readlines()
+        for line in lines:
+            line = line[:-1:]
+            line = line.split(',')
+            anime_id = line.pop(0)
+            anime_id = anime_id[1::]
+            anime_id = anime_id[:-1:]
+            ratings = []
+            for review in line:
+                review = review.split('-')
+                user_id = review[0]
+                rating = review[1]
+                ratings.append([int(user_id), float(rating)])
+            ratings.sort()
+            data[anime_id] = ratings
+    return data
+
+
 def get_meta_line(index):
     global meta_file
     return meta_file[index]
@@ -113,35 +134,6 @@ def get_name_to_id_dict():
     return name_to_id_dict
 
 
-def fill_ratings_with_ids_file():
-    import csv
-    import codecs
-
-    name_to_id_dict = get_name_to_id_dict()
-
-    with open('ratings-ids.csv', 'w', newline='', encoding='utf_8_sig') as ratings_ids_file:
-        writer = csv.writer(ratings_ids_file, delimiter=',', quotechar='"')
-        writer.writerow(['anime_id', 'user_id', 'rating'])
-
-    with codecs.open('ratings-names.csv', 'r', 'utf_8_sig') as ratings_names_file:
-        reader = csv.reader(ratings_names_file)
-        next(reader)
-        for i, line in enumerate(reader, start=1):
-            if i % 1000 == 0:
-                print(str(i) + ' lines done')
-
-            anime_id = line[0]
-            user_name = line[1]
-            rating = line[2]
-
-            user_id = name_to_id_dict[user_name]
-            record = [anime_id, user_id, rating]
-            with open('ratings-ids.csv', 'a', newline='', encoding='utf_8_sig') as ratings_ids_file:
-                writer = csv.writer(ratings_ids_file, delimiter=',', quotechar='"')
-                writer.writerow(record)
-    print('Filling completed')
-
-
 def get_anime_ids():
     import csv
     import codecs
@@ -153,67 +145,6 @@ def get_anime_ids():
             anime_ids.append(line[0])
     anime_ids = anime_ids[1::]
     return anime_ids
-
-
-def reorganize_ratings():
-    global anime_ids
-
-    for i, anime_id in enumerate(anime_ids, start=1):
-        print(str(i / len(anime_ids) * 100) + '% Done')
-
-        line = '[' + anime_id + '],'
-        ratings = get_ratings_from_ids_for(anime_id)
-        for rating in ratings:
-            user_id = rating[1]
-            anime_rating = rating[2]
-            user_id = str(user_id)
-            anime_rating = str(anime_rating)
-            line += user_id + '-' + anime_rating + ','
-        line = line[:-1:]
-        line += '\n'
-        with open('reorganized-ratings.txt', 'a') as reorganized_ratings_file:
-            reorganized_ratings_file.write(line)
-
-
-def get_ratings(anime_id):
-    ratings = []
-    with open('reorganized-ratings.txt', 'r') as ratings_file:
-        lines = ratings_file.readlines()
-        for line in lines:
-            if line.startswith('[' + anime_id + ']'):
-                line = line[:-1:]
-                data = line.split(',')
-                data = data[1::]
-                for record in data:
-                    user_id, rating = record.split('-')
-                    ratings.append([user_id, rating])
-                ratings.sort()
-                return ratings
-    return None
-
-
-def get_matching_ratings(anime_id_1, anime_id_2):
-    ratings_1 = get_ratings(anime_id_1)
-    ratings_2 = get_ratings(anime_id_2)
-
-    result_1 = []
-    result_2 = []
-    index_1 = 0
-    index_2 = 0
-    while index_1 < len(ratings_1) and index_2 < len(ratings_2):
-        if int(ratings_1[index_1][0]) < int(ratings_2[index_2][0]):
-            index_1 += 1
-            continue
-        if int(ratings_2[index_2][0]) < int(ratings_1[index_1][0]):
-            index_2 += 1
-            continue
-        if int(ratings_1[index_1][0]) == int(ratings_2[index_2][0]):
-            result_1.append(float(ratings_1[index_1][1]))
-            result_2.append(float(ratings_2[index_2][1]))
-            index_1 += 1
-            index_2 += 1
-            continue
-    return result_1, result_2
 
 
 def pearson_correlation(line_1, line_2):
@@ -234,14 +165,6 @@ def pearson_correlation(line_1, line_2):
         correlation_coefficient = 0
 
     return correlation_coefficient
-
-
-def get_correlation_score(anime_id, anime_id_2):
-    first_ratings, second_ratings = get_matching_ratings(anime_id, anime_id_2)
-    if len(first_ratings) < 7 or len(second_ratings) < 7:
-        return 0
-    correlation_score = pearson_correlation(first_ratings, second_ratings)
-    return correlation_score
 
 
 def get_meta_by_index(anime_index):
@@ -291,44 +214,6 @@ def get_genre_similarity_score(first_ind, second_ind):
     return similarity_score
 
 
-def get_max_members():
-    import csv
-    import codecs
-
-    max_members = 0
-    with codecs.open('anime-meta.csv', 'r', 'utf_8_sig') as meta_file:
-        reader = csv.reader(meta_file)
-        next(reader)
-        for line in reader:
-            members = int(line[3])
-            max_members = max(max_members, members)
-    return max_members
-
-
-def get_recommendation_score(anime_id_1, anime_id_2):
-    meta_2 = get_meta_by_id(anime_id_2)
-    genre_score = get_genre_similarity_score(anime_id_1, anime_id_2)
-    correlation_score = get_correlation_score(anime_id_1, anime_id_2)
-    rating_2 = meta_2['rating']
-    max_members = get_max_members()
-    members_2 = meta_2['members']
-
-    recommendation_score = (((correlation_score + 1) * 10)**2 + (genre_score * 100) + rating_2
-                            + (members_2 * 3 / max_members)) / 513 * 100
-
-    return recommendation_score
-
-
-def get_correlation_line(anime_id):
-    global anime_ids
-    scores = []
-    for i, second_id in enumerate(anime_ids, start=1):
-        print(f'Getting correlation scores for title: {i} ')
-        score = get_correlation_score(anime_id, second_id)
-        scores.append(score)
-    return scores
-
-
 def get_genre_score_line(first_ind):
     print(f'Getting scores for title number {first_ind + 1}')
     global anime_ids
@@ -361,12 +246,123 @@ def fill_genre_scores_table():
     print('DONE')
 
 
+def fill_ratings_with_ids_file():
+    import csv
+    import codecs
+
+    name_to_id_dict = get_name_to_id_dict()
+
+    with open('ratings-ids.csv', 'w', newline='', encoding='utf_8_sig') as ratings_ids_file:
+        writer = csv.writer(ratings_ids_file, delimiter=',', quotechar='"')
+        writer.writerow(['anime_id', 'user_id', 'rating'])
+
+    with codecs.open('ratings-names.csv', 'r', 'utf_8_sig') as ratings_names_file:
+        reader = csv.reader(ratings_names_file)
+        next(reader)
+        id_ratings = []
+        for i, line in enumerate(reader, start=1):
+            if i % 1000 == 0:
+                print(str(i) + ' lines done')
+
+            anime_id = line[0]
+            user_name = line[1]
+            rating = line[2]
+
+            user_id = name_to_id_dict[user_name]
+            record = [anime_id, user_id, rating]
+            id_ratings.append(record)
+        with open('ratings-ids.csv', 'a', newline='', encoding='utf_8_sig') as ratings_ids_file:
+            writer = csv.writer(ratings_ids_file, delimiter=',', quotechar='"')
+            writer.writerows(id_ratings)
+    print('Filling completed')
+
+
+def reorganize_ratings():
+    global anime_ids
+
+    reorganized_ratings = []
+    for i, anime_id in enumerate(anime_ids, start=1):
+        print(str(i / len(anime_ids) * 100) + '% Done')
+
+        line = '[' + anime_id + '],'
+        ratings = get_ratings_from_ids_for(anime_id)
+        for rating in ratings:
+            user_id = rating[1]
+            anime_rating = rating[2]
+            user_id = str(user_id)
+            anime_rating = str(anime_rating)
+            line += user_id + '-' + anime_rating + ','
+        line = line[:-1:]
+        line += '\n'
+        reorganized_ratings.append(line)
+    with open('reorganized-ratings.txt', 'w') as reorganized_ratings_file:
+        reorganized_ratings_file.writelines(reorganized_ratings)
+
+
+def get_matching_ratings(anime_id_1, anime_id_2):
+    global ratings_dict
+    ratings_1 = ratings_dict[anime_id_1]
+    ratings_2 = ratings_dict[anime_id_2]
+
+    result_1 = []
+    result_2 = []
+    index_1 = 0
+    index_2 = 0
+    while index_1 < len(ratings_1) and index_2 < len(ratings_2):
+        if ratings_1[index_1][0] < ratings_2[index_2][0]:
+            index_1 += 1
+            continue
+        if ratings_2[index_2][0] < ratings_1[index_1][0]:
+            index_2 += 1
+            continue
+        if ratings_1[index_1][0] == ratings_2[index_2][0]:
+            result_1.append(ratings_1[index_1][1])
+            result_2.append(ratings_2[index_2][1])
+            index_1 += 1
+            index_2 += 1
+            continue
+    return result_1, result_2
+
+
+def get_correlation_score(anime_id, anime_id_2):
+    first_ratings, second_ratings = get_matching_ratings(anime_id, anime_id_2)
+    if len(first_ratings) < 7 or len(second_ratings) < 7:
+        return 0
+    correlation_score = pearson_correlation(first_ratings, second_ratings)
+    return correlation_score
+
+
+def get_correlation_line(anime_id):
+    global anime_ids
+    correlation_line = []
+    for second_id in anime_ids:
+        score = get_correlation_score(anime_id, second_id)
+        correlation_line.append(score)
+    return correlation_line
+
+
+# TODO:
+'''
+When ratings names are done:
+1). fill_ratings_ids_file()
+2). reorganize_ratings()
+'''
+
 if __name__ == '__main__':
+    print('Preparing...')
     anime_ids = get_anime_ids()
     meta_file = get_list_from_csv('anime-meta.csv')
+    ratings_dict = get_dict_from_ratings()  # only when reorganized ratings are done
+    print('Preparation done')
 
+    print(ratings_dict['1535'])
+    print(ratings_dict['16498'])
+    r1, r2 = get_matching_ratings('1535', '16498')
+    print(r1)
+    print(r2)
     import time
     begin = time.process_time()
-    print(get_genre_score_line(0))
+    corr = get_correlation_score('1535', '16498')
     end = time.process_time()
-    print(f'Time: {end - begin} seconds')
+    print(corr)
+    print(end - begin)
