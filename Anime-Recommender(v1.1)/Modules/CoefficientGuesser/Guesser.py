@@ -110,6 +110,8 @@ if __name__ == '__main__':
 
     import time
     begin = time.process_time()
-    print(get_nn_input('1535', '16498'))
+    for _ in range(1000):
+        res = get_nn_input('1535', '16498')
     end = time.process_time()
+    print(res)
     print(f'Finished in {end - begin}(s)')

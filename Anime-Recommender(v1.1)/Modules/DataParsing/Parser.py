@@ -89,15 +89,12 @@ def get_ratings_from_names_for(anime_id):
 
 
 def get_ratings_from_ids_for(anime_id):
-    import csv
-    import codecs
+    global ratings_ids_list
 
     ratings = []
-    with codecs.open('ratings-ids.csv', 'r', 'utf_8_sig') as ratings_file:
-        reader = csv.reader(ratings_file)
-        for line in reader:
-            if line[0] == anime_id:
-                ratings.append(line)
+    for line in ratings_ids_list:
+        if line[0] == anime_id:
+            ratings.append(line)
     return ratings
 
 
@@ -277,12 +274,46 @@ def fill_ratings_with_ids_file():
     print('Filling completed')
 
 
+def clean_ratings():
+    import csv
+
+    with open('ratings-ids.csv') as ratings_file:
+        reader = csv.reader(ratings_file)
+        ratings_list = list(reader)
+
+    user_id_list = []
+    for rating in ratings_list:
+        user_id = rating[1]
+        user_id_list.append(user_id)
+
+    print('Counting...')
+    counter = {}
+    for i, user_id in enumerate(user_id_list, start=1):
+        print(f'{i / len(user_id_list) * 100}% Done')
+        if user_id not in counter:
+            counter[user_id] = 0
+        counter[user_id] += 1
+
+    print('Cleaning...')
+    result = []
+    for i, rating in enumerate(ratings_list):
+        print(f'{i / len(ratings_list) * 100}% Done')
+        user_id = rating[1]
+        if counter[user_id] > 1:
+            result.append(rating)
+
+    with open('ratings-ids.csv', 'w', newline='') as ratings_file:
+        writer = csv.writer(ratings_file)
+        writer.writerow(['anime_id', 'user_id', 'rating'])
+        writer.writerows(result)
+
+
 def reorganize_ratings():
     global anime_ids
 
     reorganized_ratings = []
     for i, anime_id in enumerate(anime_ids, start=1):
-        print(str(i / len(anime_ids) * 100) + '% Done')
+        print(f'{round(i / len(anime_ids) * 100, 2)}% Done')
 
         line = '[' + anime_id + '],'
         ratings = get_ratings_from_ids_for(anime_id)
@@ -349,9 +380,13 @@ When ratings names are done:
 '''
 
 if __name__ == '__main__':
+    import csv
     print('Preparing...')
     anime_ids = get_anime_ids()
     meta_file = get_list_from_csv('anime-meta.csv')
+    # with open('ratings-ids.csv') as ratings_file:
+    #     reader = csv.reader(ratings_file)
+    #     ratings_ids_list = list(reader)
     ratings_dict = get_dict_from_ratings()  # only when reorganized ratings are done
     print('Preparation done')
 
@@ -362,7 +397,8 @@ if __name__ == '__main__':
     print(r2)
     import time
     begin = time.process_time()
-    corr = get_correlation_score('1535', '16498')
+    for _ in range(10000):
+        corr = get_correlation_score('1535', '16498')
     end = time.process_time()
     print(corr)
     print(end - begin)
