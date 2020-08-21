@@ -385,33 +385,39 @@ def get_correlation_line(anime_id):
     correlation_line = []
     for second_id in anime_ids:
         score = get_correlation_score(anime_id, second_id)
-        correlation_line.append(score)
+        correlation_line.append(round(score, 2))
     return correlation_line
 
 
-# TODO:
-'''
-When ratings names are done:
-1). fill_ratings_ids_file()
-2). reorganize_ratings()
-'''
+def fill_correlation_table():
+    import csv
+    global anime_ids
+
+    with open('correlation_score_table.csv', 'w', newline='') as correlation_table:
+        writer = csv.writer(correlation_table)
+        header = anime_ids.copy()
+        header.insert(0, 'anime_id')
+        writer.writerow(header)
+
+    for i, anime_id in enumerate(anime_ids, start=1):
+        print(f'{round(i / len(anime_ids) * 100, 2)}% Done')
+
+        correlation_line = get_correlation_line(anime_id)
+        correlation_line.insert(0, anime_id)
+
+        with open('correlation_score_table.csv', 'a', newline='') as correlation_table:
+            writer = csv.writer(correlation_table)
+            writer.writerow(correlation_line)
+
 
 if __name__ == '__main__':
     import csv
     print('Preparing...')
     anime_ids = get_anime_ids()
-    meta_file = get_list_from_csv('anime-meta.csv')
     # with open('ratings-ids.csv') as ratings_file:
     #     reader = csv.reader(ratings_file)
     #     ratings_ids_list = list(reader)
-    # ratings_dict = get_dict_from_ratings()  # only when reorganized ratings are done
+    ratings_dict = get_dict_from_ratings()  # only when reorganized ratings are done
     print('Preparation done')
 
-
-    import time
-    begin = time.process_time()
-    for _ in range(10000):
-        score = get_genre_similarity_score_by_id('1535', '16498', anime_ids)
-    end = time.process_time()
-    print(score)
-    print(end - begin)
+    fill_correlation_table()
