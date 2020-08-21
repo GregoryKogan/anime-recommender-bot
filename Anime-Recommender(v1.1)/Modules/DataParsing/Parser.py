@@ -211,6 +211,23 @@ def get_genre_similarity_score(first_ind, second_ind):
     return similarity_score
 
 
+def get_genre_similarity_score_by_id(first_id, second_id, anime_ids):
+    first_ind = anime_ids.index(first_id)
+    second_ind = anime_ids.index(second_id)
+    genres_1 = get_meta_by_index(first_ind)['genres']
+    genres_2 = get_meta_by_index(second_ind)['genres']
+    genres_1 = genres_1.split(',')
+    genres_2 = genres_2.split(',')
+
+    matching_genres = 0
+    for genre in genres_1:
+        if genres_2.count(genre) != 0:
+            matching_genres += 1
+
+    similarity_score = matching_genres * 2 / (len(genres_1) + len(genres_2))
+    return similarity_score
+
+
 def get_genre_score_line(first_ind):
     print(f'Getting scores for title number {first_ind + 1}')
     global anime_ids
@@ -387,18 +404,14 @@ if __name__ == '__main__':
     # with open('ratings-ids.csv') as ratings_file:
     #     reader = csv.reader(ratings_file)
     #     ratings_ids_list = list(reader)
-    ratings_dict = get_dict_from_ratings()  # only when reorganized ratings are done
+    # ratings_dict = get_dict_from_ratings()  # only when reorganized ratings are done
     print('Preparation done')
 
-    print(ratings_dict['1535'])
-    print(ratings_dict['16498'])
-    r1, r2 = get_matching_ratings('1535', '16498')
-    print(r1)
-    print(r2)
+
     import time
     begin = time.process_time()
     for _ in range(10000):
-        corr = get_correlation_score('1535', '16498')
+        score = get_genre_similarity_score_by_id('1535', '16498', anime_ids)
     end = time.process_time()
-    print(corr)
+    print(score)
     print(end - begin)
