@@ -39,6 +39,21 @@ def fill_meta_table():
     connection.close()
 
 
+def get_anime_ids():
+    connection = sqlite3.connect('Recommender.db')
+    executor = connection.cursor()
+    executor.execute("""SELECT value
+                    FROM system
+                    WHERE variable_name='anime_ids'""")
+    anime_ids_string = executor.fetchone()[0]
+    connection.commit()
+    connection.close()
+    anime_ids = anime_ids_string.split(',')
+    for i in range(len(anime_ids)):
+        anime_ids[i] = int(anime_ids[i])
+    return anime_ids
+
+
 def fill_genre_score_table():
     import csv
 
@@ -74,6 +89,41 @@ def fill_genre_score_table():
     connection.close()
 
 
+def fill_correlation_table():
+    import csv
+
+    # connection = sqlite3.connect('Recommender.db')
+    # executor = connection.cursor()
+    #
+    # executor.execute('''CREATE TABLE correlation_scores
+    #                 (anime_id integer, scores text)''')
+    #
+    # connection.commit()
+    # connection.close()
+
+    connection = sqlite3.connect('Recommender.db')
+    executor = connection.cursor()
+
+    with open('correlation_score_table.csv') as correlation_file:
+        reader = csv.reader(correlation_file)
+        next(reader)
+        for row_num, line in enumerate(reader):
+            print(f'{(row_num + 1) / 10000 * 100}% Done')
+
+            anime_id = int(line[0])
+            scores = ''
+            for i in range(1, len(line)):
+                score = line[i]
+                scores += ',' + score
+            scores = scores[1:]
+
+            executor.execute("""INSERT INTO correlation_scores VALUES (:anime_id, :scores)""",
+                             {'anime_id': anime_id, 'scores': scores})
+
+    connection.commit()
+    connection.close()
+
+
 def fill_system_table():
     import csv
 
@@ -102,21 +152,6 @@ def fill_system_table():
         connection.close()
 
 
-def get_anime_ids():
-    connection = sqlite3.connect('Recommender.db')
-    executor = connection.cursor()
-    executor.execute("""SELECT value
-                    FROM system
-                    WHERE variable_name='anime_ids'""")
-    anime_ids_string = executor.fetchone()[0]
-    connection.commit()
-    connection.close()
-    anime_ids = anime_ids_string.split(',')
-    for i in range(len(anime_ids)):
-        anime_ids[i] = int(anime_ids[i])
-    return anime_ids
-
-
 def get_genre_score(anime_id_1, anime_id_2):
     connection = sqlite3.connect('Recommender.db')
     executor = connection.cursor()
@@ -133,9 +168,11 @@ def get_genre_score(anime_id_1, anime_id_2):
 
 
 if __name__ == '__main__':
-    import time
-    begin = time.process_time()
-    score = get_genre_score(1535, 16498)
-    end = time.process_time()
-    print(score)
-    print(f'Finished in {end - begin}(s)')
+    fill_correlation_table()
+
+    # import time
+    # begin = time.process_time()
+    # score = get_genre_score(1535, 16498)
+    # end = time.process_time()
+    # print(score)
+    # print(f'Finished in {end - begin}(s)')
