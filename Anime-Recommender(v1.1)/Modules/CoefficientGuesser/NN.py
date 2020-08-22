@@ -284,6 +284,9 @@ class NeuralNetwork:
         result.set_vars(data)
         return result
 
+    def set_learning_rate(self, rate):
+        self.learning_rate = rate
+
 
 if __name__ == '__main__':
     training_data = [
@@ -315,8 +318,8 @@ if __name__ == '__main__':
 
     average_error = 1e9
     last_10_results = []
-    import random
 
+    import random
     import time
 
     begin = time.process_time()
