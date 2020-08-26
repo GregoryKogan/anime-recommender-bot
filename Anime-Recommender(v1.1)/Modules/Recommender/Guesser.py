@@ -91,7 +91,7 @@ def get_max_genre_match(anime_id, user=None, anime_ids=None):
     max_match_score = max(matching_scores)
     best_match_ind = matching_scores.index(max_match_score)
     best_match_id = watched_titles[best_match_ind]
-    
+
     best_match_meta = get_meta(best_match_id)
     best_match_rating = best_match_meta['rating']
 
@@ -168,9 +168,11 @@ def get_user_factors(user=None, progress_log=False):
     if not user:
         user = get_user_object()
 
-    if progress_log: print('Getting training data...')
-    train_data = get_training_data_from_user(user=get_user_object())
-    if progress_log: print('Training data collected')
+    if progress_log:
+        print('Getting training data...')
+    train_data = get_training_data_from_user(user=user)
+    if progress_log:
+        print('Training data collected')
 
     g = GA.Guesser(4, mutation_rate=0.1, population_size=250)
     precision_memory = [0] * 15
@@ -182,7 +184,8 @@ def get_user_factors(user=None, progress_log=False):
         precision_memory.append(g.precision)
         precision_memory = precision_memory[1::]
         gen_counter += 1
-        if progress_log: print(f'Gen: {gen_counter}, precision: {g.precision}')
+        if progress_log:
+            print(f'Gen: {gen_counter}, precision: {g.precision}')
         guessed_formula = best['formula']
     return guessed_formula.factors
 
@@ -190,6 +193,7 @@ def get_user_factors(user=None, progress_log=False):
 if __name__ == '__main__':
     user_obj = get_user_object()
     import time
+
     begin = time.process_time()
     user_factors = get_user_factors(user=user_obj)
     end = time.process_time()
