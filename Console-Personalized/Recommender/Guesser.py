@@ -57,22 +57,23 @@ def get_max_members():
     return max_members
 
 
-def get_max_genre_match(anime_id, user=None, anime_ids=None):
+def get_max_genre_match(anime_id, watched_titles=None, watched_titles_indexes=None, user=None, anime_ids=None):
     if not user:
         user = get_user_object()
     if not anime_ids:
         anime_ids = get_anime_ids()
 
-    watched_titles = list(user)
-    for i in range(len(watched_titles)):
-        watched_titles[i] = int(watched_titles[i])
-    if anime_id in watched_titles:
-        watched_titles.remove(anime_id)
+    if not watched_titles_indexes or not watched_titles:
+        watched_titles = list(user)
+        for i in range(len(watched_titles)):
+            watched_titles[i] = int(watched_titles[i])
+        if anime_id in watched_titles:
+            watched_titles.remove(anime_id)
 
-    watched_titles_indexes = []
-    for watched_title in watched_titles:
-        title_ind = anime_ids.index(watched_title)
-        watched_titles_indexes.append(title_ind)
+        watched_titles_indexes = []
+        for watched_title in watched_titles:
+            title_ind = anime_ids.index(watched_title)
+            watched_titles_indexes.append(title_ind)
 
     connection = sqlite3.connect('Recommender.db')
     executor = connection.cursor()
@@ -99,22 +100,23 @@ def get_max_genre_match(anime_id, user=None, anime_ids=None):
     return score
 
 
-def get_max_corr_match(anime_id, user=None, anime_ids=None):
+def get_max_corr_match(anime_id, watched_titles=None, watched_titles_indexes=None, user=None, anime_ids=None):
     if not user:
         user = get_user_object()
     if not anime_ids:
         anime_ids = get_anime_ids()
 
-    watched_titles = list(user)
-    for i in range(len(watched_titles)):
-        watched_titles[i] = int(watched_titles[i])
-    if anime_id in watched_titles:
-        watched_titles.remove(anime_id)
+    if not watched_titles_indexes or not watched_titles:
+        watched_titles = list(user)
+        for i in range(len(watched_titles)):
+            watched_titles[i] = int(watched_titles[i])
+        if anime_id in watched_titles:
+            watched_titles.remove(anime_id)
 
-    watched_titles_indexes = []
-    for watched_title in watched_titles:
-        title_ind = anime_ids.index(watched_title)
-        watched_titles_indexes.append(title_ind)
+        watched_titles_indexes = []
+        for watched_title in watched_titles:
+            title_ind = anime_ids.index(watched_title)
+            watched_titles_indexes.append(title_ind)
 
     connection = sqlite3.connect('Recommender.db')
     executor = connection.cursor()
