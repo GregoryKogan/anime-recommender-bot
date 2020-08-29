@@ -2,3 +2,4 @@
 config.py
 Recommender.db
 telegram_bot_venv
+Users.db
