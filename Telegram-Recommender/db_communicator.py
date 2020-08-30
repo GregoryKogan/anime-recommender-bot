@@ -66,6 +66,13 @@ def get_first_title_by_id(anime_id):
     return first_title
 
 
+def get_all_titles_by_id(anime_id):
+    meta = get_anime_meta(anime_id)
+    titles = meta[1]
+    titles = titles.split(',')
+    return titles
+
+
 def is_number(s):
     try:
         float(s)
@@ -131,4 +138,4 @@ WHERE user_id={user_id}""")
 
 
 if __name__ == '__main__':
-    print(get_user_ratings(42))
+    print(get_anime_meta(16498))
