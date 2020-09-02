@@ -5,8 +5,8 @@ import GA
 def get_user_object():
     import json
     with open('user.json') as user_file:
-        user_obj = json.load(user_file)
-    return user_obj
+        user = json.load(user_file)
+    return user
 
 
 def get_meta(anime_id):
@@ -192,12 +192,9 @@ def get_user_factors(user=None, progress_log=False):
     return guessed_formula.factors
 
 
+index_time = 0
+
 if __name__ == '__main__':
     user_obj = get_user_object()
-    import time
-
-    begin = time.process_time()
     user_factors = get_user_factors(user=user_obj)
-    end = time.process_time()
     print(user_factors)
-    print(f'Finished in {end - begin}(s)')

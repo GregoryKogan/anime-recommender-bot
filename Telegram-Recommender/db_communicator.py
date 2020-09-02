@@ -137,5 +137,20 @@ WHERE user_id={user_id}""")
     connection.close()
 
 
+def get_anime_ids():
+    connection = sqlite3.connect('Recommender.db')
+    executor = connection.cursor()
+    executor.execute("""SELECT value
+                        FROM system
+                        WHERE variable_name='anime_ids'""")
+    response = executor.fetchone()
+    connection.close()
+
+    anime_ids = response[0].split(',')
+    for i in range(len(anime_ids)):
+        anime_ids[i] = int(anime_ids[i])
+    return anime_ids
+
+
 if __name__ == '__main__':
-    print(get_anime_meta(16498))
+    print(get_anime_ids())
