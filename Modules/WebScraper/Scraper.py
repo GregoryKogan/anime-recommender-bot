@@ -51,9 +51,10 @@ def get_meta(anime_id, anime_link):
             elif span.text == 'Synonyms:':
                 syn_titles = sub_paragraph.text[len('Synonyms:  '):-3:].split(',')
                 for title in syn_titles:
-                    if title[0] == ' ':
-                        title = title[1::]
-                    alternative_titles.append(title)
+                    if len(title) > 0:
+                        if title[0] == ' ':
+                            title = title[1::]
+                        alternative_titles.append(title)
     for alternative_title in alternative_titles:
         if alternative_title != main_title:
             anime_titles.append(alternative_title)
@@ -70,7 +71,10 @@ def get_meta(anime_id, anime_link):
         if info_pad.text.find('Episodes:') != -1:
             num_of_episodes = info_pad.text[len(' Episodes:   '):-3:]
         elif info_pad.text.find('Aired:') != -1:
-            release_date = info_pad.text[len(' Aired:   ')::].split('to')[0].split(',')[1][1:-1:]
+            try:
+                release_date = info_pad.text[len(' Aired:   ')::].split('to')[0].split(',')[1][1:-1:]
+            except IndexError:
+                pass
         elif info_pad.text.find('Duration:') != -1:
             duration = info_pad.text[len(' Duration:   ')::].split(' ')[0]
 
@@ -109,7 +113,10 @@ def get_meta(anime_id, anime_link):
         num_of_episodes = 0
     else:
         num_of_episodes = int(num_of_episodes)
-    duration = int(duration)
+    if duration != 'Unknown\n':
+        duration = int(duration)
+    else:
+        duration = 0
     release_date = int(release_date)
     # print(f'anime id: {anime_id}')
     # print(f'titles: {titles_string}')
