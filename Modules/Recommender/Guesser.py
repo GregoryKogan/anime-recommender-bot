@@ -1,200 +1,50 @@
-import sqlite3
 import GA
+import Recommender
 
 
-def get_user_object():
-    import json
-    with open('user.json') as user_file:
-        user = json.load(user_file)
-    return user
+def build_training_data(user):
+    watched_titles = list(user)
+    for watched_title_ind in range(len(watched_titles)):
+        watched_titles[watched_title_ind] = int(watched_titles[watched_title_ind])
 
-
-def get_meta(anime_id):
-    connection = sqlite3.connect('Recommender.db')
-    executor = connection.cursor()
-    executor.execute(f"""SELECT *
-                        FROM anime_meta
-                        WHERE anime_id={anime_id}""")
-    response = executor.fetchone()
-    meta_data = {
-        'anime_id': response[0],
-        'titles': response[1],
-        'rating': response[2],
-        'members': response[3],
-        'genres': response[4]
-    }
-    if not meta_data['rating']:
-        meta_data['rating'] = 0
-    connection.close()
-    return meta_data
-
-
-def get_anime_ids():
-    connection = sqlite3.connect('Recommender.db')
-    executor = connection.cursor()
-    executor.execute("""SELECT value
-                        FROM system
-                        WHERE variable_name='anime_ids'""")
-    response = executor.fetchone()
-    connection.close()
-
-    anime_ids = response[0].split(',')
-    for i in range(len(anime_ids)):
-        anime_ids[i] = int(anime_ids[i])
-    return anime_ids
-
-
-def get_max_members():
-    connection = sqlite3.connect('Recommender.db')
-    executor = connection.cursor()
-    executor.execute("""SELECT value
-                        FROM system
-                        WHERE variable_name='max_members'""")
-    response = executor.fetchone()
-    connection.close()
-
-    max_members = int(response[0])
-    return max_members
-
-
-def get_max_genre_match(anime_id, watched_titles=None, watched_titles_indexes=None, user=None, anime_ids=None):
-    if not user:
-        user = get_user_object()
-    if not anime_ids:
-        anime_ids = get_anime_ids()
-
-    if not watched_titles_indexes or not watched_titles:
-        watched_titles = list(user)
-        for i in range(len(watched_titles)):
-            watched_titles[i] = int(watched_titles[i])
-        if anime_id in watched_titles:
-            watched_titles.remove(anime_id)
-
-        watched_titles_indexes = []
-        for watched_title in watched_titles:
-            title_ind = anime_ids.index(watched_title)
-            watched_titles_indexes.append(title_ind)
-
-    connection = sqlite3.connect('Recommender.db')
-    executor = connection.cursor()
-    executor.execute(f"""SELECT scores
-                        FROM genre_scores
-                        WHERE anime_id={anime_id}""")
-    response = executor.fetchone()
-    connection.close()
-
-    scores = response[0].split(',')
-
-    matching_scores = []
-    for watched_title_index in watched_titles_indexes:
-        matching_scores.append(float(scores[watched_title_index]))
-
-    max_match_score = max(matching_scores)
-    best_match_ind = matching_scores.index(max_match_score)
-    best_match_id = watched_titles[best_match_ind]
-
-    best_match_meta = get_meta(best_match_id)
-    best_match_rating = best_match_meta['rating']
-
-    score = max_match_score * best_match_rating
-    return score
-
-
-def get_max_corr_match(anime_id, watched_titles=None, watched_titles_indexes=None, user=None, anime_ids=None):
-    if not user:
-        user = get_user_object()
-    if not anime_ids:
-        anime_ids = get_anime_ids()
-
-    if not watched_titles_indexes or not watched_titles:
-        watched_titles = list(user)
-        for i in range(len(watched_titles)):
-            watched_titles[i] = int(watched_titles[i])
-        if anime_id in watched_titles:
-            watched_titles.remove(anime_id)
-
-        watched_titles_indexes = []
-        for watched_title in watched_titles:
-            title_ind = anime_ids.index(watched_title)
-            watched_titles_indexes.append(title_ind)
-
-    connection = sqlite3.connect('Recommender.db')
-    executor = connection.cursor()
-    executor.execute(f"""SELECT scores
-                        FROM correlation_scores
-                        WHERE anime_id={anime_id}""")
-    response = executor.fetchone()
-    connection.close()
-
-    scores = response[0].split(',')
-
-    matching_scores = []
-    for watched_title_index in watched_titles_indexes:
-        matching_scores.append(float(scores[watched_title_index]))
-
-    max_match_score = max(matching_scores)
-    best_match_ind = matching_scores.index(max_match_score)
-    best_match_id = watched_titles[best_match_ind]
-
-    best_match_meta = get_meta(best_match_id)
-    best_match_rating = best_match_meta['rating']
-
-    score = max_match_score * best_match_rating
-    return score
-
-
-def get_training_data_from_user(user=None):
-    if not user:
-        user = get_user_object()
-    anime_ids = get_anime_ids()
-    max_members = get_max_members()
+    watched_titles_data = []
+    for watched_title in watched_titles:
+        _, _, genres, _, _, _ = Recommender.get_recommendation_data_for(watched_title)
+        record = [watched_title, genres]
+        watched_titles_data.append(record)
 
     training_data = []
-    for str_anime_id in user:
-        anime_id = int(str_anime_id)
-        user_rating = user[str_anime_id]
-        meta = get_meta(anime_id)
-        members = meta['members'] / max_members
-        crowd_rating = meta['rating']
-        genre_score = get_max_genre_match(anime_id, user=user, anime_ids=anime_ids)
-        corr_score = get_max_corr_match(anime_id, user=user, anime_ids=anime_ids)
-        new_test = {
-            'Input': [crowd_rating, members, corr_score, genre_score],
-            'Target': user_rating
+    for watched_title in watched_titles:
+        rating, members, genres, duration, episodes, age = Recommender.get_recommendation_data_for(watched_title)
+        genre_score = 0
+        for watched_title_data in watched_titles_data:
+            if watched_title == watched_title_data[0]:
+                continue
+            else:
+                current_genre_matching = Recommender.get_genre_score(genres, watched_title_data[1])
+                second_rating = user[str(watched_title_data[0])] / 10
+                current_genre_score = current_genre_matching * second_rating
+                genre_score = max(genre_score, current_genre_score)
+        training_test = {
+            'Input': [rating, members, genre_score, duration, episodes, age],
+            'Target': user[str(watched_title)]
         }
-        training_data.append(new_test)
+        training_data.append(training_test)
     return training_data
 
 
-def get_user_factors(user=None, progress_log=False):
-    if not user:
-        user = get_user_object()
+def get_user_factors(user):
+    training_data = build_training_data(user)
+    g = GA.Guesser(6, mutation_rate=1, population_size=250)
+    epochs = 0
+    while g.precision > 0.5 and epochs < 100:
+        g.train(training_data)
+        epochs += 1
+    factors = g.test_formulas(training_data)[0]['formula'].factors
+    return factors
 
-    if progress_log:
-        print('Getting training data...')
-    train_data = get_training_data_from_user(user=user)
-    if progress_log:
-        print('Training data collected')
-
-    g = GA.Guesser(4, mutation_rate=0.1, population_size=250)
-    precision_memory = [0] * 15
-    gen_counter = 0
-    guessed_formula = None
-    while g.precision != precision_memory[0] and gen_counter < 100:
-        g.train(train_data)
-        best = g.test_formulas(train_data)[0]
-        precision_memory.append(g.precision)
-        precision_memory = precision_memory[1::]
-        gen_counter += 1
-        if progress_log:
-            print(f'Gen: {gen_counter}, precision: {g.precision}')
-        guessed_formula = best['formula']
-    return guessed_formula.factors
-
-
-index_time = 0
 
 if __name__ == '__main__':
-    user_obj = get_user_object()
-    user_factors = get_user_factors(user=user_obj)
+    user_obj = Recommender.get_user()
+    user_factors = get_user_factors(user_obj)
     print(user_factors)

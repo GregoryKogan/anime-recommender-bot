@@ -1,104 +1,118 @@
 import sqlite3
 import json
-import concurrent.futures
+import Guesser
 
 
-def get_user():
-    with open('user.json') as user_file:
-        user_object = json.load(user_file)
-        return user_object
+def get_variable(variable_name):
+    connection = sqlite3.connect('Recommender.db')
+    executor = connection.cursor()
+    executor.execute(f"SELECT value FROM variables WHERE variable='{variable_name}'")
+    response = executor.fetchone()[0]
+    connection.close()
+    return response
 
 
 def get_anime_ids():
     connection = sqlite3.connect('Recommender.db')
     executor = connection.cursor()
-    executor.execute("""SELECT value FROM system WHERE variable_name='anime_ids'""")
-    response = executor.fetchone()[0]
+    executor.execute("SELECT value FROM variables WHERE variable='anime_ids'")
+    response = executor.fetchone()[0].split(',')
     connection.close()
-    anime_ids_list = response.split(',')
-    return anime_ids_list
+    result = [int(response[i]) for i in range(len(response))]
+    return result
 
 
-def get_anime_id_ind_dict(anime_ids_list):
-    id_ind_dict = {}
-    for i, anime_id in enumerate(anime_ids_list):
-        id_ind_dict[int(anime_id)] = i
-    return id_ind_dict
-
-
-def get_input(anime_id, anime_id_ind_dict, user):
+def get_recommendation_data_for(anime_id):
     connection = sqlite3.connect('Recommender.db')
     executor = connection.cursor()
-    executor.execute(f"""SELECT rating, members FROM anime_meta WHERE anime_id={anime_id}""")
-    rating, members = executor.fetchone()
-    if not rating:
-        rating = 0
-    executor.execute("""SELECT value FROM system WHERE variable_name='max_members'""")
-    max_members = int(executor.fetchone()[0])
-    members = members / max_members * 10
-    executor.execute(f"""SELECT scores FROM correlation_scores WHERE anime_id={anime_id}""")
-    correlation_scores = executor.fetchone()[0].split(',')
-    executor.execute(f"""SELECT scores FROM genre_scores WHERE anime_id={anime_id}""")
-    genre_scores = executor.fetchone()[0].split(',')
-    max_corr_match_score = -1
-    max_corr_match_id = 0
-    max_genre_match_score = -1
-    max_genre_match_id = 0
-    watched_titles = list(user)
-    for watched_title in watched_titles:
-        watched_title = int(watched_title)
-        if watched_title == anime_id:
-            continue
-        watched_title_ind = anime_id_ind_dict[watched_title]
-        corr_score = float(correlation_scores[watched_title_ind])
-        genre_score = float(genre_scores[watched_title_ind])
-        if corr_score > max_corr_match_score:
-            max_corr_match_score = corr_score
-            max_corr_match_id = watched_title
-        if genre_score > max_genre_match_score:
-            max_genre_match_score = genre_score
-            max_genre_match_id = watched_title
-    executor.execute(f"""SELECT rating FROM anime_meta WHERE anime_id={max_corr_match_id}""")
-    corr_match_rating = executor.fetchone()[0]
-    executor.execute(f"""SELECT rating FROM anime_meta WHERE anime_id={max_genre_match_id}""")
-    genre_match_rating = executor.fetchone()[0]
+    executor.execute(f"""SELECT rating, members, genres, duration, episodes, age
+FROM recommendation_data WHERE anime_id={anime_id}""")
+    response = executor.fetchone()
     connection.close()
-    corr_input = max_corr_match_score * corr_match_rating
-    genre_input = max_genre_match_score * genre_match_rating
-    result_input = [rating, members, corr_input, genre_input]
-    return anime_id, result_input
+    return response
 
 
-def get_recs(anime_ids_list, anime_id_ind_dict, user, factors):
+def get_recommendation_data():
+    connection = sqlite3.connect('Recommender.db')
+    executor = connection.cursor()
+    executor.execute(f"""SELECT * FROM recommendation_data""")
+    response = executor.fetchall()
+    connection.close()
+    return response
+
+
+def get_genre_score(genres_1: str, genres_2: str):
+    if len(genres_1) != len(genres_2):
+        print('ERROR: genre strings have different length!')
+        return None
+    matching_sum = 0
+    total_genres = 0
+    for symbol_index in range(len(genres_1)):
+        if genres_1[symbol_index] == '1' or genres_2[symbol_index] == '1':
+            total_genres += 1
+            if genres_1[symbol_index] == genres_2[symbol_index] == '1':
+                matching_sum += 1
+    genre_score = matching_sum / total_genres
+    return genre_score
+
+
+def get_user():
+    with open('user.json') as user_file:
+        user = json.load(user_file)
+        return user
+
+
+def get_user_watched_genres(user):
+    user_watched_genres = []
+    watched_titles = list(user)
+    for title_ind in range(len(watched_titles)):
+        watched_titles[title_ind] = int(watched_titles[title_ind])
+    for watched_title in watched_titles:
+        _, _, watched_title_genres, _, _, _ = get_recommendation_data_for(watched_title)
+        rating = user[str(watched_title)]
+        record = [rating, watched_title_genres]
+        user_watched_genres.append(record)
+    return user_watched_genres
+
+
+def get_genre_input(genres, user_watched_genres):
+    genre_input = 0
+    for watched_title in user_watched_genres:
+        rating = watched_title[0] / 10
+        watched_genres = watched_title[1]
+        genre_score = get_genre_score(genres, watched_genres)
+        current_genre_input = rating * genre_score
+        genre_input = max(genre_input, current_genre_input)
+    return genre_input
+
+
+def get_recommendations(user, factors):
     recommendations = []
-    titles_done = 0
-    threads = []
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        for anime_id in anime_ids_list:
-            threads.append(executor.submit(get_input, anime_id, anime_id_ind_dict, user))
-
-        for thread in concurrent.futures.as_completed(threads):
-            titles_done += 1
-            print(f'{titles_done / 100}% Done')
-            anime_id, formula_input = thread.result()
-            formula_output = 0
-            for term_ind in range(len(formula_input)):
-                formula_output += formula_input[term_ind] * factors[term_ind]
-            record = [formula_output, anime_id]
-            recommendations.append(record)
+    user_watched_genres = get_user_watched_genres(user)
+    full_recommendation_data = get_recommendation_data()
+    for recommendation_data_record in full_recommendation_data:
+        anime_id, rating, members, genres, duration, episodes, age = recommendation_data_record
+        if str(anime_id) in list(user):
+            continue
+        genre_input = get_genre_input(genres, user_watched_genres)
+        formula_input = [rating, members, genre_input, duration, episodes, age]
+        recommendation_score = 0
+        for parameter_index in range(6):
+            recommendation_score += formula_input[parameter_index] * factors[parameter_index]
+        record = [recommendation_score, anime_id]
+        recommendations.append(record)
     recommendations.sort(reverse=True)
     return recommendations
 
 
 if __name__ == '__main__':
-    user_factors = [1.0119084766654052, 0.2738593451543023, -0.19202096876447025, 0.16243546143742582]
-    user_obj = get_user()
-    anime_ids = get_anime_ids()
-    anime_id_ind_dictionary = get_anime_id_ind_dict(anime_ids)
     import time
+    user_obj = get_user()
+    user_factors = Guesser.get_user_factors(user_obj)
+    print(f'Factors: {user_factors}')
     begin = time.perf_counter()
-    recs = get_recs(anime_ids, anime_id_ind_dictionary, user_obj, user_factors)
+    recs = get_recommendations(user_obj, user_factors)
     end = time.perf_counter()
     for i in range(10):
         print(recs[i])
-    print(f'Finished in {end - begin}(s)')
+    print(end - begin)
