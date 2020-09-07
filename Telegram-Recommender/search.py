@@ -28,8 +28,8 @@ def find(search_line):
     titles = db.get_all_titles()
     search_titles = []
     for record in titles:
-        anime_id, titles = record
-        new_record = [anime_id, to_searchable(titles)]
+        anime_id, anime_titles = record
+        new_record = [anime_id, to_searchable(anime_titles)]
         search_titles.append(new_record)
 
     search_results = []

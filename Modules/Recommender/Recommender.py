@@ -108,7 +108,7 @@ def get_recommendations(user, factors):
 if __name__ == '__main__':
     import time
     user_obj = get_user()
-    user_factors = Guesser.get_user_factors(user_obj)
+    user_factors = Guesser.get_user_factors(user_obj, num_of_epochs=200)
     print(f'Factors: {user_factors}')
     begin = time.perf_counter()
     recs = get_recommendations(user_obj, user_factors)
