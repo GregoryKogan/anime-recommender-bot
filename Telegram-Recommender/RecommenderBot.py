@@ -5,6 +5,7 @@ import config
 import db_communicator as db
 from add_anime_functionality import add_anime
 from recommender import recommend
+from account_viewer import show_account
 
 
 bot = telebot.TeleBot(config.API_TOKEN, parse_mode='HTML')
@@ -35,6 +36,8 @@ def handle_any_message(message: Message):
         add_anime(message, bot)
     elif message.text == 'Get recommendations':
         recommend(message, bot)
+    elif message.text == 'Account':
+        show_account(message, bot)
 
 
 bot.polling(none_stop=True)
