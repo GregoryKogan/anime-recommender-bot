@@ -1,5 +1,7 @@
+import json
 import guesser
 import db_communicator as db
+from telebot.types import Message
 
 
 def get_genre_score(genres_1: str, genres_2: str):
@@ -58,6 +60,20 @@ def get_recommendations(user, factors):
         recommendations.append(record)
     recommendations.sort(reverse=True)
     return recommendations
+
+
+def recommend(message: Message, bot=None):
+    user_id = message.from_user.id
+    factors = db.get_factors(user_id)
+    user = json.loads(db.get_ratings_by(user_id))
+    recommendations = get_recommendations(user, factors)
+
+    message_text = "<b>Your recommendations:</b>\n"
+    for rec_ind in range(10):
+        anime_id = recommendations[rec_ind][1]
+        title = db.get_meta_by_id(anime_id)['titles'].split(',')[0]
+        message_text += f"\n{rec_ind + 1}) {title}"
+    bot.send_message(message.chat.id, message_text)
 
 
 if __name__ == '__main__':

@@ -2,8 +2,9 @@ import telebot
 from telebot import types
 from telebot.types import Message
 import config
-from add_anime_functionality import add_anime
 import db_communicator as db
+from add_anime_functionality import add_anime
+from recommender import recommend
 
 
 bot = telebot.TeleBot(config.API_TOKEN, parse_mode='HTML')
@@ -32,8 +33,8 @@ def handle_any_message(message: Message):
 
     if message.text == 'Add anime':
         add_anime(message, bot)
-    else:
-        db.check_user(message)
+    elif message.text == 'Get recommendations':
+        recommend(message, bot)
 
 
 bot.polling(none_stop=True)
