@@ -1,44 +1,5 @@
-import sqlite3
-import json
-import Guesser
-
-
-def get_variable(variable_name):
-    connection = sqlite3.connect('Recommender.db')
-    executor = connection.cursor()
-    executor.execute(f"SELECT value FROM variables WHERE variable='{variable_name}'")
-    response = executor.fetchone()[0]
-    connection.close()
-    return response
-
-
-def get_anime_ids():
-    connection = sqlite3.connect('Recommender.db')
-    executor = connection.cursor()
-    executor.execute("SELECT value FROM variables WHERE variable='anime_ids'")
-    response = executor.fetchone()[0].split(',')
-    connection.close()
-    result = [int(response[i]) for i in range(len(response))]
-    return result
-
-
-def get_recommendation_data_for(anime_id):
-    connection = sqlite3.connect('Recommender.db')
-    executor = connection.cursor()
-    executor.execute(f"""SELECT rating, members, genres, duration, episodes, age
-FROM recommendation_data WHERE anime_id={anime_id}""")
-    response = executor.fetchone()
-    connection.close()
-    return response
-
-
-def get_recommendation_data():
-    connection = sqlite3.connect('Recommender.db')
-    executor = connection.cursor()
-    executor.execute(f"""SELECT * FROM recommendation_data""")
-    response = executor.fetchall()
-    connection.close()
-    return response
+import guesser
+import db_communicator as db
 
 
 def get_genre_score(genres_1: str, genres_2: str):
@@ -56,19 +17,13 @@ def get_genre_score(genres_1: str, genres_2: str):
     return genre_score
 
 
-def get_user():
-    with open('user.json') as user_file:
-        user = json.load(user_file)
-        return user
-
-
 def get_user_watched_genres(user):
     user_watched_genres = []
     watched_titles = list(user)
     for title_ind in range(len(watched_titles)):
         watched_titles[title_ind] = int(watched_titles[title_ind])
     for watched_title in watched_titles:
-        _, _, watched_title_genres, _, _, _ = get_recommendation_data_for(watched_title)
+        _, _, watched_title_genres, _, _, _ = db.get_recommendation_data_for(watched_title)
         rating = user[str(watched_title)]
         record = [rating, watched_title_genres]
         user_watched_genres.append(record)
@@ -89,7 +44,7 @@ def get_genre_input(genres, user_watched_genres):
 def get_recommendations(user, factors):
     recommendations = []
     user_watched_genres = get_user_watched_genres(user)
-    full_recommendation_data = get_recommendation_data()
+    full_recommendation_data = db.get_recommendation_data()
     for recommendation_data_record in full_recommendation_data:
         anime_id, rating, members, genres, duration, episodes, age = recommendation_data_record
         if str(anime_id) in list(user):
@@ -107,8 +62,8 @@ def get_recommendations(user, factors):
 
 if __name__ == '__main__':
     import time
-    user_obj = get_user()
-    user_factors = Guesser.get_user_factors(user_obj, num_of_epochs=200)
+    user_obj = {"2904": 9.0, "1735": 9.5}
+    user_factors = guesser.get_user_factors(user_obj, num_of_epochs=200)
     print(f'Factors: {user_factors}')
     begin = time.perf_counter()
     recs = get_recommendations(user_obj, user_factors)

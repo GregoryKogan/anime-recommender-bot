@@ -67,6 +67,7 @@ def receive_user_rating(message: Message, anime_id, bot=None):
     if rating and 0 <= rating <= 10:
         user_id = message.from_user.id
         db.add_rating(user_id, anime_id, rating)
+        db.update_factors(user_id)
         message_text = f"Rating <b>{rating}</b> for <b>{title}</b> successfully added to your account!"
         markup = types.ReplyKeyboardMarkup(row_width=1, selective=False)
         add_anime_button = types.KeyboardButton('Add anime')
