@@ -1,8 +1,8 @@
-import telebot
 from telebot import types
 from telebot.types import Message
-import search
 import db_communicator as db
+import search
+import variables
 
 
 def add_anime(message: Message, bot):
@@ -22,7 +22,8 @@ def find_anime(message: Message, bot=None):
     markup = types.ReplyKeyboardMarkup(row_width=2)
     yes_button = types.KeyboardButton('Yes')
     no_button = types.KeyboardButton('No')
-    markup.add(no_button, yes_button)
+    exit_button = types.KeyboardButton('Exit adding mode')
+    markup.add(no_button, yes_button, exit_button)
     user_answer = bot.send_message(message.chat.id, message_text, reply_markup=markup)
     bot.register_next_step_handler(user_answer, process_user_search_answer, search_result, bot=bot)
 
@@ -40,6 +41,9 @@ Find title:"""
         markup = types.ForceReply(selective=False)
         user_answer = bot.send_message(message.chat.id, message_text, reply_markup=markup)
         bot.register_next_step_handler(user_answer, receive_user_rating, searched_anime_id, bot=bot)
+    elif message.text == 'Exit adding mode':
+        markup = variables.main_menu()
+        bot.send_message(message.chat.id, 'Ok, leaving adding mode', reply_markup=markup)
     else:
         second_message_text = "<b>Please, tell me 'Yes' or 'No'!</b>"
         titles = db.get_meta_by_id(searched_anime_id)['titles'].split(',')

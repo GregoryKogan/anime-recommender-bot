@@ -1,7 +1,10 @@
+from io import BytesIO
 import sqlite3
 import json
 from telebot.types import Message
+import requests
 import guesser
+from PIL import Image
 
 
 def get_all_titles():
@@ -170,5 +173,11 @@ def update_factors(user_id):
     connection.close()
 
 
+def get_poster(anime_id):
+    response = requests.get('https://cdn.myanimelist.net/images/anime/1384/107759l.jpg')
+    img = Image.open(BytesIO(response.content))
+    img.show()
+    
+
 if __name__ == '__main__':
-    update_factors(544711957)
+    get_poster(40028)
