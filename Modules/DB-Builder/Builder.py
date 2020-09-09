@@ -1,4 +1,6 @@
 import sqlite3
+import requests
+from bs4 import BeautifulSoup
 
 
 def get_all_anime_ids_from_anime_meta():
@@ -116,5 +118,38 @@ def fill_recommendation_table():
         get_recommendation_data(all_genres, anime_id)
 
 
+def get_poster_link(anime_id):
+    target_url = f'https://myanimelist.net/anime/{anime_id}'
+    response = requests.get(target_url).text
+    pics_page = BeautifulSoup(response, 'lxml')
+    poster_link = pics_page.find('td', class_='borderClass').find('div', style='text-align: center;').img['data-src']
+    return poster_link
+
+
+def open_poster_for(anime_id):
+    from io import BytesIO
+    from PIL import Image
+    poster_url = get_poster_link(anime_id)
+    response = requests.get(poster_url)
+    img = Image.open(BytesIO(response.content))
+    img.show()
+
+
+def fill_posters_table():
+    anime_ids = get_anime_ids()
+    for title_ind, anime_id in enumerate(anime_ids, start=1):
+        print(f'{round(title_ind / len(anime_ids) * 100, 2)}% Done')
+        try:
+            poster_link = get_poster_link(anime_id)
+        except Exception:
+            poster_link = 'NO POSTER'
+        connection = sqlite3.connect('Recommender.db')
+        executor = connection.cursor()
+        executor.execute("INSERT INTO poster_urls VALUES (:anime_id, :poster_url)",
+                         {'anime_id': anime_id, 'poster_url': poster_link})
+        connection.commit()
+        connection.close()
+
+
 if __name__ == '__main__':
-    fill_recommendation_table()
+    fill_posters_table()
