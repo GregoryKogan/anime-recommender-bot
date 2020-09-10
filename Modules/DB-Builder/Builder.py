@@ -139,10 +139,14 @@ def fill_posters_table():
     anime_ids = get_anime_ids()
     for title_ind, anime_id in enumerate(anime_ids, start=1):
         print(f'{round(title_ind / len(anime_ids) * 100, 2)}% Done')
-        try:
-            poster_link = get_poster_link(anime_id)
-        except Exception:
-            poster_link = 'NO POSTER'
+        done = False
+        while not done:
+            try:
+                poster_link = get_poster_link(anime_id)
+                done = True
+            except Exception:
+                print(f'Trying again for {anime_id}')
+                pass
         connection = sqlite3.connect('Recommender.db')
         executor = connection.cursor()
         executor.execute("INSERT INTO poster_urls VALUES (:anime_id, :poster_url)",
