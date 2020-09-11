@@ -1,6 +1,7 @@
 import sqlite3
 import requests
 from bs4 import BeautifulSoup
+import time
 
 
 def get_all_anime_ids_from_anime_meta():
@@ -121,10 +122,31 @@ def fill_recommendation_table():
 def get_poster_link(anime_id):
     target_url = f'https://myanimelist.net/anime/{anime_id}'
     response = requests.get(target_url).text
-    pics_page = BeautifulSoup(response, 'lxml')
-    poster_link = pics_page.find('td', class_='borderClass').find('div', style='text-align: center;').img['data-src']
-    return poster_link
+    page = BeautifulSoup(response, 'lxml')
+    try:
+        anime_title = get_anime_title(anime_id, page=page)
+        page_loaded = True
+        print(f"{anime_title}'s page loaded")
+    except Exception:
+        page_loaded = False
+    try:
+        poster_link = page.find('td', class_='borderClass').find('div', style='text-align: center;').img['data-src']
+    except Exception:
+        poster_link = 'NO POSTER'
+    if page_loaded:
+        return poster_link
+    else:
+        return None
 
+
+def get_anime_title(anime_id, page=None):
+    if not page:
+        target_url = f'https://myanimelist.net/anime/{anime_id}'
+        response = requests.get(target_url).text
+        page = BeautifulSoup(response, 'lxml')
+    title = page.find('div', class_='h1-title').h1.text
+    return title
+    
 
 def open_poster_for(anime_id):
     from io import BytesIO
@@ -140,13 +162,15 @@ def fill_posters_table():
     for title_ind, anime_id in enumerate(anime_ids, start=1):
         print(f'{round(title_ind / len(anime_ids) * 100, 2)}% Done')
         done = False
+        poster_link = None
         while not done:
-            try:
-                poster_link = get_poster_link(anime_id)
-                done = True
-            except Exception:
+            poster_link = get_poster_link(anime_id)
+            if not poster_link:
                 print(f'Trying again for {anime_id}')
-                pass
+                time.sleep(30)
+            else:
+                done = True
+
         connection = sqlite3.connect('Recommender.db')
         executor = connection.cursor()
         executor.execute("INSERT INTO poster_urls VALUES (:anime_id, :poster_url)",
