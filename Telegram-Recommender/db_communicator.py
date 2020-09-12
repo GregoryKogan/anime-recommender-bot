@@ -173,11 +173,23 @@ def update_factors(user_id):
     connection.close()
 
 
+def get_poster_link(anime_id):
+    connection = sqlite3.connect('Recommender.db')
+    executor = connection.cursor()
+    executor.execute(f"SELECT poster_url FROM poster_urls WHERE anime_id={anime_id}")
+    response = executor.fetchone()[0]
+    connection.close()
+    return response
+    
+
 def get_poster(anime_id):
-    response = requests.get('https://cdn.myanimelist.net/images/anime/1384/107759l.jpg')
-    img = Image.open(BytesIO(response.content))
-    img.show()
+    poster_link = get_poster_link(anime_id)
+    if poster_link != 'NO POSTER':
+        response = requests.get(poster_link)
+        img = Image.open(BytesIO(response.content))
+        return img
+    return None
     
 
 if __name__ == '__main__':
-    get_poster(40028)
+    get_poster(5114)

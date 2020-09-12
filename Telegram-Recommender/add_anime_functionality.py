@@ -19,11 +19,14 @@ def find_anime(message: Message, bot=None):
         message_text += 'Alternative titles:\n'
         for title_ind in range(1, len(titles)):
             message_text += f'{titles[title_ind]}\n'
+    anime_poster = db.get_poster(search_result)
     markup = types.ReplyKeyboardMarkup(row_width=2)
     yes_button = types.KeyboardButton('Yes')
     no_button = types.KeyboardButton('No')
     exit_button = types.KeyboardButton('Exit adding mode')
     markup.add(no_button, yes_button, exit_button)
+    if anime_poster:
+        bot.send_photo(message.chat.id, anime_poster)
     user_answer = bot.send_message(message.chat.id, message_text, reply_markup=markup)
     bot.register_next_step_handler(user_answer, process_user_search_answer, search_result, bot=bot)
 

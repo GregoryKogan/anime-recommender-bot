@@ -82,7 +82,7 @@ if __name__ == '__main__':
     ]
 
     g = Guesser(3, mutation_rate=0.01, population_size=1000)
-    while g.precision > 1:
+    while g.precision > 0.2:
         g.train(training_data)
         best = g.test_formulas(training_data)[0]
         print(g.precision)
