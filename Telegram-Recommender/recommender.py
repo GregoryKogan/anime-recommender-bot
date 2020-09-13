@@ -1,7 +1,7 @@
 import json
 import guesser
 import db_communicator as db
-from telebot.types import Message
+from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 
 def get_genre_score(genres_1: str, genres_2: str):
@@ -68,12 +68,29 @@ def recommend(message: Message, bot=None):
     user = json.loads(db.get_ratings_by(user_id))
     recommendations = get_recommendations(user, factors)
 
-    message_text = "<b>Your recommendations:</b>\n"
-    for rec_ind in range(10):
-        anime_id = recommendations[rec_ind][1]
-        title = db.get_meta_by_id(anime_id)['titles'].split(',')[0]
-        message_text += f"\n{rec_ind + 1}) {title}"
-    bot.send_message(message.chat.id, message_text)
+    user_id = message.from_user.id
+    user_name, _ = db.get_user_data(user_id)
+    message_text = f"Recommendation for <b>{user_name}</b>\n"
+    anime_id = recommendations[0][1]
+    title = db.get_first_title(anime_id)
+    message_text += f"\n{title}"
+    anime_poster = db.get_poster(anime_id)
+
+    inline_keyboard = InlineKeyboardMarkup(row_width=2)
+    rate_button = InlineKeyboardButton(text='Rate', callback_data='test')
+    ban_button = InlineKeyboardButton(text='Ban', callback_data='test')
+    next_button = InlineKeyboardButton(text='Next', callback_data='test')
+    inline_keyboard.add(ban_button, rate_button,
+                        next_button)
+
+    if anime_poster and len(message_text) <= 1000:
+        bot.send_photo(message.chat.id, anime_poster, caption=message_text, reply_markup=inline_keyboard)
+    else:
+        if anime_poster:
+            bot.send_photo(message.chat.id, anime_poster)
+            bot.send_message(message.chat.id, message_text, reply_markup=inline_keyboard)
+        else:
+            bot.send_message(message.chat.id, message_text, reply_markup=inline_keyboard)
 
 
 if __name__ == '__main__':
