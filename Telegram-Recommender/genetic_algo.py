@@ -4,7 +4,7 @@ import random
 class Formula(object):
     def __init__(self, factors_amount=1, start_factors=None):
         if not start_factors:
-            self.factors = [random.random() for _ in range(factors_amount)]
+            self.factors = [((random.random() * 2) - 1) for _ in range(factors_amount)]
         else:
             self.factors = start_factors
 

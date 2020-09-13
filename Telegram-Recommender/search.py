@@ -55,4 +55,4 @@ def find(search_line):
 
 
 if __name__ == '__main__':
-    print(find('Code Geass R2'))
+    print(find('Evangelion'))

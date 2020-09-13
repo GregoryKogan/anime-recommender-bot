@@ -12,19 +12,29 @@ def add_anime(message: Message, bot):
 
 
 def find_anime(message: Message, bot=None):
-    search_result = search.find(message.text)[0]
+    search_guesses = search.find(message.text)[:6:]
+    search_result = search_guesses.pop(0)
+    message_text = ""
+    if len(search_guesses) > 0:
+        message_text += "<b>Perhaps you meant:</b>"
+        for search_guess in search_guesses:
+            related_title = db.get_first_title(search_guess)
+            message_text += f'\n{related_title}'
+        message_text += '\n\n'
     titles = db.get_meta_by_id(search_result)['titles'].split(',')
-    message_text = f"""Is it <b>{titles[0]}</b>?\n\n"""
+    message_text += f"Is it <b>{titles[0]}</b>?"
+    release_date = db.get_meta_by_id(search_result)['release_date']
+    message_text += f'\nYear: {release_date}\n\n'
     if len(titles) > 1:
-        message_text += 'Alternative titles:\n'
+        message_text += '<b>Alternative titles:</b>\n'
         for title_ind in range(1, len(titles)):
             message_text += f'{titles[title_ind]}\n'
-    anime_poster = db.get_poster(search_result)
     markup = types.ReplyKeyboardMarkup(row_width=2)
     yes_button = types.KeyboardButton('Yes')
     no_button = types.KeyboardButton('No')
     exit_button = types.KeyboardButton('Exit adding mode')
     markup.add(no_button, yes_button, exit_button)
+    anime_poster = db.get_poster(search_result)
     if anime_poster:
         bot.send_photo(message.chat.id, anime_poster)
     user_answer = bot.send_message(message.chat.id, message_text, reply_markup=markup)

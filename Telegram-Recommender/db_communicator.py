@@ -185,11 +185,39 @@ def get_poster_link(anime_id):
 def get_poster(anime_id):
     poster_link = get_poster_link(anime_id)
     if poster_link != 'NO POSTER':
-        response = requests.get(poster_link)
-        img = Image.open(BytesIO(response.content))
-        return img
-    return None
-    
+        large_link = poster_link[:-4:] + 'l' + '.jpg'
+        try:
+            response = requests.get(large_link)
+            img = Image.open(BytesIO(response.content))
+            return img
+        except Exception:
+            try:
+                response = requests.get(poster_link)
+                img = Image.open(BytesIO(response.content))
+                return img
+            except Exception:
+                return None
+    else:
+        return None
+
+
+def get_related_ids(anime_id):
+    connection = sqlite3.connect('Recommender.db')
+    executor = connection.cursor()
+    executor.execute(f"SELECT related_ids FROM anime_meta WHERE anime_id={anime_id}")
+    response = executor.fetchone()[0]
+    connection.close()
+    related_ids = []
+    if response:
+        related_ids = list(map(int, response.split(',')))
+    return related_ids
+
+
+def get_first_title(anime_id):
+    titles = get_meta_by_id(anime_id)['titles']
+    first_title = titles.split(',')[0]
+    return first_title
+
 
 if __name__ == '__main__':
-    get_poster(5114)
+    get_first_title(2904)
