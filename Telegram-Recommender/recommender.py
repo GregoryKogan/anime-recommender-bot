@@ -62,35 +62,77 @@ def get_recommendations(user, factors):
     return recommendations
 
 
-def recommend(message: Message, bot=None):
-    user_id = message.from_user.id
+def recommend(chat_id, recommendation_index, bot=None):
+    user_id = db.get_user_id_by_chat_id(chat_id)
     factors = db.get_factors(user_id)
     user = json.loads(db.get_ratings_by(user_id))
     recommendations = get_recommendations(user, factors)
 
-    user_id = message.from_user.id
     user_name, _ = db.get_user_data(user_id)
-    message_text = f"Recommendation for <b>{user_name}</b>\n"
-    anime_id = recommendations[0][1]
+    message_text = ""
+    anime_id = recommendations[recommendation_index][1]
+    recommendation_score = recommendations[recommendation_index][0]
     title = db.get_first_title(anime_id)
-    message_text += f"\n{title}"
+    anime_meta = db.get_meta_by_id(anime_id)
+    alternative_titles = anime_meta['titles'].split(',')
+    if len(alternative_titles) > 1:
+        alternative_titles = alternative_titles[1::]
+    else:
+        alternative_titles = []
+    genres = ', '.join(anime_meta['genres'].split(','))
+    rating = anime_meta['rating']
+    members = anime_meta['members']
+    episodes = anime_meta['episodes']
+    duration = anime_meta['duration']
+    release_date = anime_meta['release_date']
+    related_ids = list(map(int, anime_meta['related'].split(',')))
+    message_text += f"<b>{title}</b>"
+    if len(alternative_titles) > 0:
+        message_text += '\n\nAlternative titles:'
+        for alternative_title in alternative_titles:
+            message_text += f'\n{alternative_title}'
+
+    message_text += f'\n\nYear: <b>{release_date}</b>'
+    message_text += f'\nRating: <b>{rating}</b>'
+    message_text += f'\nViews: {members}'
+    message_text += f'\n\nGenres:\n{genres}'
+    message_text += f'\n\nEpisodes: {episodes}'
+    message_text += f'\nEpisode duration: {duration} min(s)'
+
+    real_related_ids = []
+    for related_id in related_ids:
+        if db.check_anime(related_id):
+            real_related_ids.append(related_id)
+    related_ids = real_related_ids
+    if len(related_ids) > 0:
+        message_text += '\n\nRelated to:'
+        for related_id in related_ids:
+            print(related_id)
+            related_title = db.get_first_title(related_id)
+            message_text += f'\n{related_title}'
+
+    message_text += f"\n\nRecommendation for <b>{user_name}</b>"
+
     anime_poster = db.get_poster(anime_id)
 
     inline_keyboard = InlineKeyboardMarkup(row_width=2)
     rate_button = InlineKeyboardButton(text='Rate', callback_data='test')
     ban_button = InlineKeyboardButton(text='Ban', callback_data='test')
-    next_button = InlineKeyboardButton(text='Next', callback_data='test')
+    if recommendation_index + 1 < len(recommendations):
+        next_button = InlineKeyboardButton(text='Next', callback_data=f'next-{recommendation_index + 1}')
+    else:
+        next_button = InlineKeyboardButton(text='Next', callback_data=f'next-{0}')
     inline_keyboard.add(ban_button, rate_button,
                         next_button)
 
-    if anime_poster and len(message_text) <= 1000:
-        bot.send_photo(message.chat.id, anime_poster, caption=message_text, reply_markup=inline_keyboard)
+    if anime_poster and len(message_text) <= 1020:
+        bot.send_photo(chat_id, anime_poster, caption=message_text, reply_markup=inline_keyboard)
     else:
         if anime_poster:
-            bot.send_photo(message.chat.id, anime_poster)
-            bot.send_message(message.chat.id, message_text, reply_markup=inline_keyboard)
+            bot.send_photo(chat_id, anime_poster)
+            bot.send_message(chat_id, message_text, reply_markup=inline_keyboard)
         else:
-            bot.send_message(message.chat.id, message_text, reply_markup=inline_keyboard)
+            bot.send_message(chat_id, message_text, reply_markup=inline_keyboard)
 
 
 if __name__ == '__main__':

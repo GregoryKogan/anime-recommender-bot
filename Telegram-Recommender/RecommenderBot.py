@@ -25,9 +25,18 @@ def handle_any_message(message: Message):
     if message.text == 'Add anime':
         add_anime(message, bot)
     elif message.text == 'Get recommendations':
-        recommend(message, bot)
+        chat_id = message.chat.id
+        recommend(chat_id, 0, bot)
     elif message.text == 'Account':
         show_account(message, bot)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_inline(call):
+    if call.message:
+        if call.data.startswith('next'):
+            recommendation_index = int(call.data.split('-')[1])
+            recommend(call.message.chat.id, recommendation_index, bot)
 
 
 bot.polling(none_stop=True)

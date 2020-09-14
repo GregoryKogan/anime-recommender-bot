@@ -219,5 +219,22 @@ def get_first_title(anime_id):
     return first_title
 
 
+def get_user_id_by_chat_id(chat_id):
+    connection = sqlite3.connect('Users.db')
+    executor = connection.cursor()
+    executor.execute(f"SELECT user_id FROM users_data WHERE chat_id={chat_id}")
+    response = executor.fetchone()[0]
+    connection.close()
+    return response
+
+
+def check_anime(anime_id):
+    anime_ids = get_anime_ids()
+    search_res = True
+    if anime_ids.count(anime_id) == 0:
+        search_res = False
+    return search_res
+
+
 if __name__ == '__main__':
-    get_first_title(2904)
+    print(check_anime(36730))
