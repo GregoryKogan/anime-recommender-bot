@@ -4,7 +4,7 @@ import config
 import db_communicator as db
 import variables
 from account_viewer import show_account
-from add_anime_functionality import add_anime
+from add_anime_functionality import add_anime, add_rating_from_inline
 from recommender import recommend
 
 
@@ -37,6 +37,9 @@ def callback_inline(call):
         if call.data.startswith('next'):
             recommendation_index = int(call.data.split('-')[1])
             recommend(call.message.chat.id, recommendation_index, bot)
+        elif call.data.startswith('rate'):
+            anime_id, chat_id = call.data.split('-')[1::]
+            add_rating_from_inline(anime_id, chat_id, bot)
 
 
 bot.polling(none_stop=True)

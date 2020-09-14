@@ -81,12 +81,13 @@ def recommend(chat_id, recommendation_index, bot=None):
         alternative_titles = []
     genres = ', '.join(anime_meta['genres'].split(','))
     rating = anime_meta['rating']
-    members = anime_meta['members']
+    members = db.convert_number_to_readable(anime_meta['members'])
     episodes = anime_meta['episodes']
     duration = anime_meta['duration']
     release_date = anime_meta['release_date']
     related_ids = list(map(int, anime_meta['related'].split(',')))
     message_text += f"<b>{title}</b>"
+    message_text += f'\n\nRecommendation score: {round(recommendation_score * 10, 2)}'
     if len(alternative_titles) > 0:
         message_text += '\n\nAlternative titles:'
         for alternative_title in alternative_titles:
@@ -107,7 +108,6 @@ def recommend(chat_id, recommendation_index, bot=None):
     if len(related_ids) > 0:
         message_text += '\n\nRelated to:'
         for related_id in related_ids:
-            print(related_id)
             related_title = db.get_first_title(related_id)
             message_text += f'\n{related_title}'
 
@@ -116,7 +116,7 @@ def recommend(chat_id, recommendation_index, bot=None):
     anime_poster = db.get_poster(anime_id)
 
     inline_keyboard = InlineKeyboardMarkup(row_width=2)
-    rate_button = InlineKeyboardButton(text='Rate', callback_data='test')
+    rate_button = InlineKeyboardButton(text='Rate', callback_data=f'rate-{anime_id}-{chat_id}')
     ban_button = InlineKeyboardButton(text='Ban', callback_data='test')
     if recommendation_index + 1 < len(recommendations):
         next_button = InlineKeyboardButton(text='Next', callback_data=f'next-{recommendation_index + 1}')

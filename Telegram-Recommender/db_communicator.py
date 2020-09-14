@@ -236,5 +236,19 @@ def check_anime(anime_id):
     return search_res
 
 
+def convert_number_to_readable(num):
+    num = str(num)
+    result = ''
+    cnt = 0
+    for digit_ind in range(len(num) - 1, -1, -1):
+        result += num[digit_ind]
+        cnt += 1
+        if cnt == 3:
+            result += '.'
+            cnt = 0
+    result = result[::-1]
+    return result
+
+
 if __name__ == '__main__':
-    print(check_anime(36730))
+    print(convert_number_to_readable(get_meta_by_id(5421)['members']))
