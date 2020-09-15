@@ -1,5 +1,6 @@
 import json
 from telebot.types import Message
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import db_communicator as db
 
 
@@ -21,6 +22,21 @@ def show_account(message: Message, bot=None):
         title = db.get_meta_by_id(anime_id)['titles'].split(',')[0]
         line = f"\n○ {rating} - {title}"
         message_text += line
-    last_line = f"\n\nYou've rated {len(rating_list)} titles"
+    last_line = f"\nYou've rated {len(rating_list)} titles"
     message_text += last_line
-    bot.send_message(message.chat.id, message_text)
+
+    user_ban_list = db.get_ban_list(user_id)
+    if user_ban_list:
+        message_text += "\n\nBan list:"
+        for banned_id in user_ban_list:
+            banned_title = db.get_first_title(banned_id)
+            message_text += f"\n○ {banned_title}"
+        message_text += f"\nYou've banned {len(user_ban_list)} titles"
+
+    inline_keyboard = InlineKeyboardMarkup(row_width=1)
+    remove_rating_button = InlineKeyboardButton(text='Remove rating',
+                                                callback_data=f'remove_rating-{user_id}')
+    remove_from_ban_list_button = InlineKeyboardButton(text='Remove from ban list',
+                                                       callback_data=f'remove_from_ban_list-{user_id}')
+    inline_keyboard.add(remove_rating_button, remove_from_ban_list_button)
+    bot.send_message(message.chat.id, message_text, reply_markup=inline_keyboard)

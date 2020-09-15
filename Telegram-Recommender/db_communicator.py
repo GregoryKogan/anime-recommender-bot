@@ -278,6 +278,20 @@ def ban_anime(user_id, anime_id):
     connection.close()
 
 
+def remove_rating(user_id, anime_id):
+    user_ratings = get_ratings_by(user_id)
+    if not user_ratings:
+        return
+    user_ratings = json.loads(user_ratings)
+    if str(anime_id) in user_ratings:
+        del user_ratings[str(anime_id)]
+    user_ratings = json.dumps(user_ratings)
+    connection = sqlite3.connect('Users.db')
+    executor = connection.cursor()
+    executor.execute(f"UPDATE users_ratings_list SET user_ratings='{user_ratings}' WHERE user_id={user_id}")
+    connection.commit()
+    connection.close()
+
+
 if __name__ == '__main__':
-    print(ban_anime(544711957, 20))
-    print(get_ban_list(544711957))
+    remove_rating(544711957, 1575)

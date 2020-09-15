@@ -3,7 +3,7 @@ from telebot import types
 
 def main_menu():
     markup = types.ReplyKeyboardMarkup(row_width=1, selective=False)
-    add_anime_button = types.KeyboardButton('Add anime')
+    add_anime_button = types.KeyboardButton('Rate anime')
     account_button = types.KeyboardButton('Account')
     info_button = types.KeyboardButton('Info')
     get_recs_button = types.KeyboardButton('Get recommendations')
