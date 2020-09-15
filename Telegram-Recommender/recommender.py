@@ -65,9 +65,16 @@ def get_recommendations(user, factors):
 def recommend(chat_id, recommendation_index, bot=None):
     user_id = db.get_user_id_by_chat_id(chat_id)
     factors = db.get_factors(user_id)
-    user = json.loads(db.get_ratings_by(user_id))
+    user = db.get_ratings_by(user_id)
+    if user:
+        user = json.loads(user)
+    else:
+        bot.send_message(chat_id, 'You need to have ratings to get recommendations')
+        return
     recommendations = get_recommendations(user, factors)
     ban_list = db.get_ban_list(user_id)
+    if not ban_list:
+        ban_list = []
     while recommendations[recommendation_index][1] in ban_list and recommendation_index < len(recommendations):
         recommendation_index += 1
 

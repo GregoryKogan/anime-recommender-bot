@@ -7,7 +7,11 @@ import db_communicator as db
 def show_account(message: Message, bot=None):
     user_id = message.from_user.id
     user_name, _ = db.get_user_data(user_id)
-    user_ratings = json.loads(db.get_ratings_by(user_id))
+    user_ratings = db.get_ratings_by(user_id)
+    if user_ratings:
+        user_ratings = json.loads(user_ratings)
+    else:
+        user_ratings = {}
     message_text = f"<b>{user_name}</b>'s account"
     empty_account = True
     watched_ids = list(user_ratings)
