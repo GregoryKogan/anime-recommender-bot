@@ -8,6 +8,7 @@ from add_anime_functionality import add_anime, add_rating_from_inline
 from recommender import recommend
 from ban_meneger import ban_anime
 from remove_rating import remove_rating_for
+from remove_from_ban_list_functionality import remove_from_ban_list
 
 
 bot = telebot.TeleBot(config.API_TOKEN, parse_mode='HTML')
@@ -50,7 +51,7 @@ def callback_inline(call):
             remove_rating_for(user_id, bot)
         elif call.data.startswith('remove_from_ban_list'):
             user_id = call.data.split('-')[1]
-            print(user_id)
+            remove_from_ban_list(user_id, bot)
         else:
             print(call.data)
 

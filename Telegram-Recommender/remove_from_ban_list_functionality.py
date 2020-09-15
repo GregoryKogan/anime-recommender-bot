@@ -5,7 +5,7 @@ import search
 import variables
 
 
-def remove_rating_for(user_id, bot=None):
+def remove_from_ban_list(user_id, bot=None):
     _, chat_id = db.get_user_data(user_id)
     markup = types.ForceReply(selective=False)
     user_answer = bot.send_message(chat_id, 'Which anime do you want to remove?', reply_markup=markup)
@@ -51,10 +51,10 @@ Find title:"""
         bot.register_next_step_handler(user_answer, find_anime, bot=bot)
     elif message.text == 'Yes':
         removed_title = db.get_first_title(searched_anime_id)
-        message_text = f"Rating for {removed_title} is no longer in your account"
+        message_text = f"{removed_title} is no longer in your ban list"
         markup = variables.main_menu()
         user_id = message.from_user.id
-        db.remove_rating(user_id, searched_anime_id)
+        db.remove_ban(user_id, searched_anime_id)
         bot.send_message(message.chat.id, message_text, reply_markup=markup)
     elif message.text == 'Exit adding mode':
         markup = variables.main_menu()

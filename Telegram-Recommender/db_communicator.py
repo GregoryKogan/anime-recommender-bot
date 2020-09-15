@@ -258,7 +258,8 @@ def get_ban_list(user_id):
     connection.close()
     result = None
     if response:
-        result = list(map(int, response[0].split(',')))
+        if response[0] != '':
+            result = list(map(int, response[0].split(',')))
     return result
 
 
@@ -289,6 +290,20 @@ def remove_rating(user_id, anime_id):
     connection = sqlite3.connect('Users.db')
     executor = connection.cursor()
     executor.execute(f"UPDATE users_ratings_list SET user_ratings='{user_ratings}' WHERE user_id={user_id}")
+    connection.commit()
+    connection.close()
+
+
+def remove_ban(user_id, anime_id):
+    user_ban_list = get_ban_list(user_id)
+    if not user_ban_list:
+        return
+    if user_ban_list.count(anime_id) > 0:
+        user_ban_list.remove(anime_id)
+    connection = sqlite3.connect('Users.db')
+    executor = connection.cursor()
+    user_ban_list_string = ','.join(list(map(str, user_ban_list)))
+    executor.execute(f"UPDATE users_banlist SET banned_ids='{user_ban_list_string}' WHERE user_id={user_id}")
     connection.commit()
     connection.close()
 
