@@ -10,6 +10,7 @@ from ban_meneger import ban_anime
 from remove_rating import remove_rating_for
 from remove_from_ban_list_functionality import remove_from_ban_list
 from info_show import get_info
+from help_message import send_help
 
 
 bot = telebot.TeleBot(config.API_TOKEN, parse_mode='HTML')
@@ -18,8 +19,40 @@ bot = telebot.TeleBot(config.API_TOKEN, parse_mode='HTML')
 @bot.message_handler(commands=['start'])
 def handle_start(message: Message):
     db.check_user(message)
-    markup = variables.main_menu()
-    bot.send_message(message.chat.id, 'What do you want me to do?', reply_markup=markup)
+    user_name = db.get_user_name(message)
+    bot.send_message(message.chat.id, f"Hello, {user_name}!")
+    send_help(message, bot)
+
+
+@bot.message_handler(commands=['help'])
+def handle_help(message: Message):
+    db.check_user(message)
+    send_help(message, bot)
+
+
+@bot.message_handler(commands=['rateanime'])
+def handle_rate(message: Message):
+    db.check_user(message)
+    add_anime(message, bot)
+
+
+@bot.message_handler(commands=['account'])
+def handle_account(message: Message):
+    db.check_user(message)
+    show_account(message, bot)
+
+
+@bot.message_handler(commands=['getrecs'])
+def handle_recs(message: Message):
+    db.check_user(message)
+    chat_id = message.chat.id
+    recommend(chat_id, 0, bot)
+
+
+@bot.message_handler(commands=['info'])
+def handle_account(message: Message):
+    db.check_user(message)
+    get_info(message, bot)
 
 
 @bot.message_handler()

@@ -50,6 +50,8 @@ Find title:"""
         user_answer = bot.send_message(message.chat.id, message_text, reply_markup=markup)
         bot.register_next_step_handler(user_answer, find_anime, bot=bot)
     elif message.text == 'Yes':
+        markup = variables.main_menu()
+        bot.send_message(message.chat.id, 'Information:', reply_markup=markup)
         message_text = ""
         title = db.get_first_title(searched_anime_id)
         anime_meta = db.get_meta_by_id(searched_anime_id)
