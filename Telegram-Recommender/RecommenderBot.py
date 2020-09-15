@@ -9,6 +9,7 @@ from recommender import recommend
 from ban_meneger import ban_anime
 from remove_rating import remove_rating_for
 from remove_from_ban_list_functionality import remove_from_ban_list
+from info_show import get_info
 
 
 bot = telebot.TeleBot(config.API_TOKEN, parse_mode='HTML')
@@ -32,6 +33,8 @@ def handle_any_message(message: Message):
         recommend(chat_id, 0, bot)
     elif message.text == 'Account':
         show_account(message, bot)
+    elif message.text == 'Info':
+        get_info(message, bot)
 
 
 @bot.callback_query_handler(func=lambda call: True)

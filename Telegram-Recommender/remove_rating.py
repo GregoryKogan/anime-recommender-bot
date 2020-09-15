@@ -56,7 +56,7 @@ Find title:"""
         user_id = message.from_user.id
         db.remove_rating(user_id, searched_anime_id)
         bot.send_message(message.chat.id, message_text, reply_markup=markup)
-    elif message.text == 'Exit adding mode':
+    elif message.text == 'Exit removing mode':
         markup = variables.main_menu()
         bot.send_message(message.chat.id, 'Ok, leaving removing mode', reply_markup=markup)
     else:
