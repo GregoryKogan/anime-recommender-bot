@@ -250,5 +250,34 @@ def convert_number_to_readable(num):
     return result
 
 
+def get_ban_list(user_id):
+    connection = sqlite3.connect('Users.db')
+    executor = connection.cursor()
+    executor.execute(f"SELECT banned_ids FROM users_banlist WHERE user_id={user_id}")
+    response = executor.fetchone()
+    connection.close()
+    result = None
+    if response:
+        result = list(map(int, response[0].split(',')))
+    return result
+
+
+def ban_anime(user_id, anime_id):
+    user_ban_list = get_ban_list(user_id)
+    connection = sqlite3.connect('Users.db')
+    executor = connection.cursor()
+    if not user_ban_list:
+        user_ban_list_string = str(anime_id)
+        executor.execute(f"INSERT INTO users_banlist VALUES (:user_id, :banned_ids)",
+                         {'user_id': user_id, 'banned_ids': user_ban_list_string})
+    else:
+        user_ban_list.append(anime_id)
+        user_ban_list_string = ','.join(list(map(str, user_ban_list)))
+        executor.execute(f"UPDATE users_banlist SET banned_ids='{user_ban_list_string}' WHERE user_id={user_id}")
+    connection.commit()
+    connection.close()
+
+
 if __name__ == '__main__':
-    print(convert_number_to_readable(get_meta_by_id(5421)['members']))
+    print(ban_anime(544711957, 20))
+    print(get_ban_list(544711957))

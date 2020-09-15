@@ -6,6 +6,7 @@ import variables
 from account_viewer import show_account
 from add_anime_functionality import add_anime, add_rating_from_inline
 from recommender import recommend
+from ban_meneger import ban_anime
 
 
 bot = telebot.TeleBot(config.API_TOKEN, parse_mode='HTML')
@@ -40,6 +41,9 @@ def callback_inline(call):
         elif call.data.startswith('rate'):
             anime_id, chat_id = call.data.split('-')[1::]
             add_rating_from_inline(anime_id, chat_id, bot)
+        elif call.data.startswith('ban'):
+            anime_id, chat_id = call.data.split('-')[1::]
+            ban_anime(anime_id, chat_id, bot)
 
 
 bot.polling(none_stop=True)

@@ -86,17 +86,7 @@ def receive_user_rating(message: Message, anime_id, bot=None):
         db.add_rating(user_id, anime_id, rating)
         db.update_factors(user_id)
         message_text = f"Rating <b>{rating}</b> for <b>{title}</b> successfully added to your account!"
-        markup = types.ReplyKeyboardMarkup(row_width=1, selective=False)
-        add_anime_button = types.KeyboardButton('Add anime')
-        ban_anime_button = types.KeyboardButton('Ban Anime')
-        account_button = types.KeyboardButton('Account')
-        ban_list_button = types.KeyboardButton('Ban list')
-        get_recs_button = types.KeyboardButton('Get recommendations')
-        markup.add(add_anime_button,
-                   ban_anime_button,
-                   account_button,
-                   ban_list_button,
-                   get_recs_button)
+        markup = variables.main_menu()
         bot.send_message(message.chat.id, message_text, reply_markup=markup)
     else:
         message_text = "<b>Rating must be a number from 0 to 10!</b>"

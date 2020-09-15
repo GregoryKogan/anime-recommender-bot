@@ -1,7 +1,7 @@
 import json
-import guesser
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import db_communicator as db
-from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+import guesser
 
 
 def get_genre_score(genres_1: str, genres_2: str):
@@ -67,6 +67,9 @@ def recommend(chat_id, recommendation_index, bot=None):
     factors = db.get_factors(user_id)
     user = json.loads(db.get_ratings_by(user_id))
     recommendations = get_recommendations(user, factors)
+    ban_list = db.get_ban_list(user_id)
+    while recommendations[recommendation_index][1] in ban_list and recommendation_index < len(recommendations):
+        recommendation_index += 1
 
     user_name, _ = db.get_user_data(user_id)
     message_text = ""
@@ -117,7 +120,7 @@ def recommend(chat_id, recommendation_index, bot=None):
 
     inline_keyboard = InlineKeyboardMarkup(row_width=2)
     rate_button = InlineKeyboardButton(text='Rate', callback_data=f'rate-{anime_id}-{chat_id}')
-    ban_button = InlineKeyboardButton(text='Ban', callback_data='test')
+    ban_button = InlineKeyboardButton(text='Ban', callback_data=f'ban-{anime_id}-{chat_id}')
     if recommendation_index + 1 < len(recommendations):
         next_button = InlineKeyboardButton(text='Next', callback_data=f'next-{recommendation_index + 1}')
     else:
