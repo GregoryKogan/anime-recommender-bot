@@ -7,7 +7,7 @@ def send_help(message: Message, bot=None):
         = """
 Anime Recommender v3.0
 
-This bot gives you personalized recommendations based on your ratings!
+This bot gives you personalized anime recommendations based on your ratings!
 
 Commands:
     ○ /start - begin messaging
@@ -15,10 +15,12 @@ Commands:
     ○ /rateanime - set your rating for anime
     ○ /account - view your account information
     ○ /getrecs - get personalized recommendations
-    ○ /info - get information about any anime
+    ○ /getinfo - get information about any anime
 
 More detailed information about how this system works is on <a href="github.com/GregoryKogan/Anime-Recommender">github</a>
 For bug report or other contact <a href="tg://user?id=544711957">me</a>
+
+G.Koganovskiy 2020
 """
     markup = variables.main_menu()
     bot.send_message(message.chat.id, message_text, reply_markup=markup, disable_web_page_preview=True)

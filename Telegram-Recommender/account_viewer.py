@@ -44,12 +44,25 @@ def show_account(message: Message, bot=None):
     if empty_account:
         message_text += "\n\nYou don't have anything here yet"
 
-    inline_keyboard = InlineKeyboardMarkup(row_width=1)
+    inline_keyboard = InlineKeyboardMarkup(row_width=2)
     remove_rating_button = InlineKeyboardButton(text='Remove rating',
                                                 callback_data=f'remove_rating-{user_id}')
     remove_from_ban_list_button = InlineKeyboardButton(text='Remove from ban list',
                                                        callback_data=f'remove_from_ban_list-{user_id}')
-    inline_keyboard.add(remove_rating_button, remove_from_ban_list_button)
+    change_rating_button = InlineKeyboardButton(text='Change rating', 
+                                                callback_data=f'change_rating-{user_id}')
+    user_ratings = db.get_ratings_by(user_id)
+    if user_ratings:
+        user_ratings = json.loads(user_ratings)
+    else:
+        user_ratings = {}
+    if len(list(user_ratings)) > 0:
+        inline_keyboard.add(remove_rating_button, change_rating_button)
+    user_ban_list = db.get_ban_list(user_id)
+    if not user_ban_list:
+        user_ban_list = []
+    if len(user_ban_list) > 0:
+        inline_keyboard.add(remove_from_ban_list_button)
     if not empty_account:
         bot.send_message(message.chat.id, message_text, reply_markup=inline_keyboard)
     else:

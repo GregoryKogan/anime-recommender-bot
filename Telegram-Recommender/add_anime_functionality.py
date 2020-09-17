@@ -11,6 +11,14 @@ def add_anime(message: Message, bot):
     bot.register_next_step_handler(user_answer, find_anime, bot=bot)
 
 
+def change_rating(user_id, bot):
+    _, chat_id = db.get_user_data(user_id)
+    markup = types.ForceReply(selective=False)
+    user_answer = bot.send_message(chat_id, "What anime's rating you want to change?", reply_markup=markup)
+    bot.register_next_step_handler(user_answer, find_anime, bot=bot)
+
+
+
 def find_anime(message: Message, bot=None):
     search_guesses = search.find(message.text)[:6:]
     search_result = search_guesses.pop(0)
