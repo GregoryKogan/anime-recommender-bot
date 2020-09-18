@@ -180,7 +180,7 @@ def get_poster_link(anime_id):
     response = executor.fetchone()[0]
     connection.close()
     return response
-    
+
 
 def get_poster(anime_id):
     poster_link = get_poster_link(anime_id)

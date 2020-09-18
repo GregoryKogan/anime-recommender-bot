@@ -1,6 +1,8 @@
 import telebot
 from telebot.types import Message
 import random
+import traceback
+import time
 import config
 import db_communicator as db
 import variables
@@ -145,4 +147,12 @@ def callback_inline(call):
         handle_error(error, call.message.chat.id, bot)
 
 
-bot.polling(none_stop=True)
+while True:
+    try:
+        bot.polling(none_stop=True)
+    except Exception as error:
+        traceback.print_exc()
+        print(error)
+        print('SOME ERROR OCCURRED! BOT WILL BE RESTARTED')
+        time.sleep(30)
+        print('RESTARTING')

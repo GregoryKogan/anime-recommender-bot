@@ -68,11 +68,11 @@ def recommend(chat_id, recommendation_index, bot=None):
     user = db.get_ratings_by(user_id)
     if user:
         user = json.loads(user)
-    
+
     if not user or len(user) == 0:
         bot.send_message(chat_id, 'You need to have ratings to get recommendations')
         return
-    
+
     recommendations = get_recommendations(user, factors)
     ban_list = db.get_ban_list(user_id)
     if not ban_list:
@@ -97,7 +97,13 @@ def recommend(chat_id, recommendation_index, bot=None):
     episodes = anime_meta['episodes']
     duration = anime_meta['duration']
     release_date = anime_meta['release_date']
-    related_ids = list(map(int, anime_meta['related'].split(',')))
+    related_ids_text = anime_meta['related'].split(',')
+    related_ids = []
+    for related_ind in range(len(related_ids_text)):
+        try:
+            related_ids.append(int(related_ids_text[related_ind]))
+        except ValueError:
+            pass
     message_text += f"<b>{title}</b>"
     message_text += f'\n\nRecommendation score: {round(recommendation_score * 10, 2)}'
     if len(alternative_titles) > 0:
@@ -149,6 +155,7 @@ def recommend(chat_id, recommendation_index, bot=None):
 
 if __name__ == '__main__':
     import time
+
     user_obj = {"2904": 9.0, "1735": 9.5}
     user_factors = guesser.get_user_factors(user_obj, num_of_epochs=200)
     print(f'Factors: {user_factors}')
