@@ -31,7 +31,7 @@ When system calculated final formula for specific user it can simply get recomme
 ### Source
 All anime data was parsed from <b>myanimelist.net</b>. <i><strike>please, dont sue me</strike></i> Thank them very much!
 
-#####Special thanks to:
+##### Special thanks to:
 <i>@syasinaeg
 @a_rahmanovsky</i>
 
