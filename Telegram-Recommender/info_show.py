@@ -66,7 +66,18 @@ Find title:"""
         episodes = anime_meta['episodes']
         duration = anime_meta['duration']
         release_date = anime_meta['release_date']
-        related_ids = list(map(int, anime_meta['related'].split(',')))
+        related_ids_text = anime_meta['related'].split(',')
+        related_ids = []
+        for related_ind in range(len(related_ids_text)):
+            try:
+                related_ids.append(int(related_ids_text[related_ind]))
+            except ValueError:
+                pass
+        real_related_ids = []
+        for related_id in related_ids:
+            if db.check_anime(related_id):
+                real_related_ids.append(related_id)
+        related_ids = real_related_ids
         message_text += f"<b>{title}</b>"
         if len(alternative_titles) > 0:
             message_text += '\n\nAlternative titles:'
