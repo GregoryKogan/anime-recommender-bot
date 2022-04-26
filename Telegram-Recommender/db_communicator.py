@@ -23,7 +23,7 @@ def get_meta_by_id(anime_id):
     response = executor.fetchone()
     connection.close()
     _, titles, genres, rating, members, episodes, duration, release_date, related = response
-    meta = {
+    return {
         'anime_id': anime_id,
         'titles': titles,
         'genres': genres,
@@ -32,20 +32,17 @@ def get_meta_by_id(anime_id):
         'episodes': episodes,
         'duration': duration,
         'release_date': release_date,
-        'related': related
+        'related': related,
     }
-    return meta
 
 
 def get_user_name(message: Message):
-    user_name = message.from_user.username
-    if not user_name:
-        user_name = message.from_user.first_name
-    if not user_name:
-        user_name = message.from_user.last_name
-    if not user_name:
-        user_name = 'Unknown user'
-    return user_name
+    return (
+        message.from_user.username
+        or message.from_user.first_name
+        or message.from_user.last_name
+        or 'Unknown user'
+    )
 
 
 def get_user_data(user_id):
@@ -65,8 +62,11 @@ def check_user(message: Message):
         user_name = get_user_name(message)
         connection = sqlite3.connect('Users.db')
         executor = connection.cursor()
-        executor.execute(f"INSERT INTO users_data VALUES (:user_id, :user_name, :chat_id)",
-                         {'user_id': user_id, 'user_name': user_name, 'chat_id': chat_id})
+        executor.execute(
+            "INSERT INTO users_data VALUES (:user_id, :user_name, :chat_id)",
+            {'user_id': user_id, 'user_name': user_name, 'chat_id': chat_id},
+        )
+
         connection.commit()
         connection.close()
 
@@ -83,25 +83,25 @@ def get_ratings_by(user_id):
 
 
 def add_rating(user_id, anime_id, rating):
-    user_ratings = get_ratings_by(user_id)
-    if not user_ratings:
-        user_ratings = {str(anime_id): rating}
-        user_ratings = json.dumps(user_ratings)
-        connection = sqlite3.connect('Users.db')
-        executor = connection.cursor()
-        executor.execute(f"INSERT INTO users_ratings_list VALUES (:user_id, :user_ratings)",
-                         {'user_id': user_id, 'user_ratings': user_ratings})
-        connection.commit()
-        connection.close()
-    else:
+    if user_ratings := get_ratings_by(user_id):
         user_ratings = json.loads(user_ratings)
         user_ratings[str(anime_id)] = rating
         user_ratings = json.dumps(user_ratings)
         connection = sqlite3.connect('Users.db')
         executor = connection.cursor()
         executor.execute(f"UPDATE users_ratings_list SET user_ratings='{user_ratings}' WHERE user_id={user_id}")
-        connection.commit()
-        connection.close()
+    else:
+        user_ratings = {str(anime_id): rating}
+        user_ratings = json.dumps(user_ratings)
+        connection = sqlite3.connect('Users.db')
+        executor = connection.cursor()
+        executor.execute(
+            "INSERT INTO users_ratings_list VALUES (:user_id, :user_ratings)",
+            {'user_id': user_id, 'user_ratings': user_ratings},
+        )
+
+    connection.commit()
+    connection.close()
 
 
 def get_variable(variable_name):
@@ -119,8 +119,7 @@ def get_anime_ids():
     executor.execute("SELECT value FROM variables WHERE variable='anime_ids'")
     response = executor.fetchone()[0].split(',')
     connection.close()
-    result = [int(response[i]) for i in range(len(response))]
-    return result
+    return [int(response[i]) for i in range(len(response))]
 
 
 def get_recommendation_data_for(anime_id):
@@ -136,7 +135,7 @@ FROM recommendation_data WHERE anime_id={anime_id}""")
 def get_recommendation_data():
     connection = sqlite3.connect('Recommender.db')
     executor = connection.cursor()
-    executor.execute(f"""SELECT * FROM recommendation_data""")
+    executor.execute("""SELECT * FROM recommendation_data""")
     response = executor.fetchall()
     connection.close()
     return response
@@ -167,8 +166,11 @@ def update_factors(user_id):
     if get_factors(user_id):
         executor.execute(f"UPDATE users_factors SET factors='{factors_string}' WHERE user_id={user_id}")
     else:
-        executor.execute(f"INSERT INTO users_factors VALUES (:user_id, :factors)",
-                         {'user_id': user_id, 'factors': factors_string})
+        executor.execute(
+            "INSERT INTO users_factors VALUES (:user_id, :factors)",
+            {'user_id': user_id, 'factors': factors_string},
+        )
+
     connection.commit()
     connection.close()
 
@@ -184,21 +186,20 @@ def get_poster_link(anime_id):
 
 def get_poster(anime_id):
     poster_link = get_poster_link(anime_id)
-    if poster_link != 'NO POSTER':
-        large_link = poster_link[:-4:] + 'l' + '.jpg'
+    if poster_link == 'NO POSTER':
+        return None
+    large_link = f'{poster_link[:-4:]}l.jpg'
+    try:
+        response = requests.get(large_link)
+        img = Image.open(BytesIO(response.content))
+        return img
+    except Exception:
         try:
-            response = requests.get(large_link)
+            response = requests.get(poster_link)
             img = Image.open(BytesIO(response.content))
             return img
         except Exception:
-            try:
-                response = requests.get(poster_link)
-                img = Image.open(BytesIO(response.content))
-                return img
-            except Exception:
-                return None
-    else:
-        return None
+            return None
 
 
 def get_related_ids(anime_id):
@@ -207,16 +208,12 @@ def get_related_ids(anime_id):
     executor.execute(f"SELECT related_ids FROM anime_meta WHERE anime_id={anime_id}")
     response = executor.fetchone()[0]
     connection.close()
-    related_ids = []
-    if response:
-        related_ids = list(map(int, response.split(',')))
-    return related_ids
+    return list(map(int, response.split(','))) if response else []
 
 
 def get_first_title(anime_id):
     titles = get_meta_by_id(anime_id)['titles']
-    first_title = titles.split(',')[0]
-    return first_title
+    return titles.split(',')[0]
 
 
 def get_user_id_by_chat_id(chat_id):
@@ -230,10 +227,7 @@ def get_user_id_by_chat_id(chat_id):
 
 def check_anime(anime_id):
     anime_ids = get_anime_ids()
-    search_res = True
-    if anime_ids.count(anime_id) == 0:
-        search_res = False
-    return search_res
+    return anime_ids.count(anime_id) != 0
 
 
 def convert_number_to_readable(num):
@@ -256,11 +250,11 @@ def get_ban_list(user_id):
     executor.execute(f"SELECT banned_ids FROM users_banlist WHERE user_id={user_id}")
     response = executor.fetchone()
     connection.close()
-    result = None
-    if response:
-        if response[0] != '':
-            result = list(map(int, response[0].split(',')))
-    return result
+    return (
+        list(map(int, response[0].split(',')))
+        if response and response[0] != ''
+        else None
+    )
 
 
 def ban_anime(user_id, anime_id):
@@ -269,8 +263,11 @@ def ban_anime(user_id, anime_id):
     executor = connection.cursor()
     if not user_ban_list:
         user_ban_list_string = str(anime_id)
-        executor.execute(f"INSERT INTO users_banlist VALUES (:user_id, :banned_ids)",
-                         {'user_id': user_id, 'banned_ids': user_ban_list_string})
+        executor.execute(
+            "INSERT INTO users_banlist VALUES (:user_id, :banned_ids)",
+            {'user_id': user_id, 'banned_ids': user_ban_list_string},
+        )
+
     else:
         user_ban_list.append(anime_id)
         user_ban_list_string = ','.join(list(map(str, user_ban_list)))

@@ -11,11 +11,11 @@ class Matrix:
             line = '|'
             for cell in row:
                 if cell < 0:
-                    cell_text = str(round(cell, 1)) + '|'
+                    cell_text = f'{str(round(cell, 1))}|'
                 else:
-                    cell_text = str(round(cell, 2)) + '|'
+                    cell_text = f'{str(round(cell, 2))}|'
                     if len(cell_text) == 4:
-                        cell_text = str(round(cell, 2)) + ' |'
+                        cell_text = f'{str(round(cell, 2))} |'
                 line += cell_text
             print(line)
         print('=' * (5 * self.columns + 1))
@@ -28,9 +28,7 @@ class Matrix:
         result = Matrix(m1.rows, m2.columns)
         for i in range(result.rows):
             for j in range(result.columns):
-                cell = 0
-                for k in range(m1.columns):
-                    cell += m1.values[i][k] * m2.values[k][j]
+                cell = sum(m1.values[i][k] * m2.values[k][j] for k in range(m1.columns))
                 result.values[i][j] = cell
         return result
 
@@ -92,8 +90,7 @@ class Matrix:
     def make_array(input_matrix):
         result = []
         for i in range(input_matrix.rows):
-            for j in range(input_matrix.columns):
-                result.append(input_matrix.values[i][j])
+            result.extend(input_matrix.values[i][j] for j in range(input_matrix.columns))
         return result
 
     @staticmethod
@@ -210,7 +207,6 @@ class NeuralNetwork:
         return Matrix.make_array(output)
 
     def train(self, input_array, answer):
-        layers_results = []
         input_matrix = Matrix.make_matrix(input_array)
 
         first_hidden = Matrix.multiply(self.weights[0], input_matrix)
@@ -218,8 +214,7 @@ class NeuralNetwork:
         first_hidden = Matrix.apply_function(first_hidden, sigmoid)
 
         previous_result = first_hidden
-        layers_results.append(first_hidden)
-
+        layers_results = [previous_result]
         for i in range(1, self.num_of_hidden_layers):
             hidden_i = Matrix.multiply(self.weights[i], previous_result)
             hidden_i.add(self.biases[i])
@@ -332,9 +327,7 @@ if __name__ == '__main__':
         last_10_results.append(abs(prediction - data['Targets'][0]))
         if len(last_10_results) > 10:
             last_10_results = last_10_results[1:]
-        sum_of_errors = 0
-        for error in last_10_results:
-            sum_of_errors += error
+        sum_of_errors = sum(last_10_results)
         average_error = sum_of_errors / len(last_10_results)
         brain.train(data['Inputs'], data['Targets'])
         epochs += 1

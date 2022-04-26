@@ -53,8 +53,7 @@ def get_max_members():
     response = executor.fetchone()
     connection.close()
 
-    max_members = int(response[0])
-    return max_members
+    return int(response[0])
 
 
 def get_max_genre_match(anime_id, user=None, anime_ids=None):
@@ -84,19 +83,19 @@ def get_max_genre_match(anime_id, user=None, anime_ids=None):
 
     scores = response[0].split(',')
 
-    matching_scores = []
-    for watched_title_index in watched_titles_indexes:
-        matching_scores.append(float(scores[watched_title_index]))
+    matching_scores = [
+        float(scores[watched_title_index])
+        for watched_title_index in watched_titles_indexes
+    ]
 
     max_match_score = max(matching_scores)
     best_match_ind = matching_scores.index(max_match_score)
     best_match_id = watched_titles[best_match_ind]
-    
+
     best_match_meta = get_meta(best_match_id)
     best_match_rating = best_match_meta['rating']
 
-    score = max_match_score * best_match_rating
-    return score
+    return max_match_score * best_match_rating
 
 
 def get_max_corr_match(anime_id, user=None, anime_ids=None):
@@ -126,9 +125,10 @@ def get_max_corr_match(anime_id, user=None, anime_ids=None):
 
     scores = response[0].split(',')
 
-    matching_scores = []
-    for watched_title_index in watched_titles_indexes:
-        matching_scores.append(float(scores[watched_title_index]))
+    matching_scores = [
+        float(scores[watched_title_index])
+        for watched_title_index in watched_titles_indexes
+    ]
 
     max_match_score = max(matching_scores)
     best_match_ind = matching_scores.index(max_match_score)
@@ -137,8 +137,7 @@ def get_max_corr_match(anime_id, user=None, anime_ids=None):
     best_match_meta = get_meta(best_match_id)
     best_match_rating = best_match_meta['rating']
 
-    score = max_match_score * best_match_rating
-    return score
+    return max_match_score * best_match_rating
 
 
 def get_training_data_from_user(user=None):

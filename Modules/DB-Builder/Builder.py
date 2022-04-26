@@ -27,8 +27,7 @@ def get_anime_ids():
     executor.execute("SELECT value FROM variables WHERE variable='anime_ids'")
     response = executor.fetchone()[0].split(',')
     connection.close()
-    result = [int(response[i]) for i in range(len(response))]
-    return result
+    return [int(response[i]) for i in range(len(response))]
 
 
 def get_property(property_name, anime_id):
@@ -58,8 +57,7 @@ def get_all_genres():
         for genre in current_genres:
             if genre != '':
                 genres.add(genre)
-    genres = list(genres)
-    genres.sort()
+    genres = sorted(genres)
     return genres
 
 
@@ -70,8 +68,7 @@ def get_genre_coordinates(genres, anime_id):
         if anime_genre != '':
             genre_ind = genres.index(anime_genre)
             coordinates[genre_ind] = '1'
-    coordinate_string = ''.join(coordinates)
-    return coordinate_string
+    return ''.join(coordinates)
 
 
 def get_recommendation_data(genres, anime_id):
@@ -133,10 +130,7 @@ def get_poster_link(anime_id):
         poster_link = page.find('td', class_='borderClass').find('div', style='text-align: center;').img['data-src']
     except Exception:
         poster_link = 'NO POSTER'
-    if page_loaded:
-        return poster_link
-    else:
-        return None
+    return poster_link if page_loaded else None
 
 
 def get_anime_title(anime_id, page=None):
@@ -144,8 +138,7 @@ def get_anime_title(anime_id, page=None):
         target_url = f'https://myanimelist.net/anime/{anime_id}'
         response = requests.get(target_url).text
         page = BeautifulSoup(response, 'lxml')
-    title = page.find('div', class_='h1-title').h1.text
-    return title
+    return page.find('div', class_='h1-title').h1.text
     
 
 def open_poster_for(anime_id):

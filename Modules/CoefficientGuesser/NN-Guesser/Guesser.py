@@ -30,8 +30,7 @@ def get_max_members():
     executor.execute(f"""SELECT value
                     FROM system
                     WHERE variable_name='max_members'""")
-    max_members = int(executor.fetchone()[0])
-    return max_members
+    return int(executor.fetchone()[0])
 
 
 def get_meta(anime_id):
@@ -147,10 +146,7 @@ def get_max_genre(anime_id, user=None, anime_ids=None):
     max_genre_score = -1
     max_genre_match = None
 
-    watched_anime_ids = []
-    for watched_id in user:
-        watched_anime_ids.append(int(watched_id))
-
+    watched_anime_ids = [int(watched_id) for watched_id in user]
     genre_scores = get_genre_scores(anime_id, watched_anime_ids, anime_ids=anime_ids)
 
     for i, watched_anime_id in enumerate(watched_anime_ids):
@@ -178,10 +174,7 @@ def get_max_correlation(anime_id, user=None, anime_ids=None):
     max_correlation_score = -1
     max_correlation_match = None
 
-    watched_anime_ids = []
-    for watched_id in user:
-        watched_anime_ids.append(int(watched_id))
-
+    watched_anime_ids = [int(watched_id) for watched_id in user]
     correlation_scores = get_correlation_scores(anime_id, watched_anime_ids, anime_ids=anime_ids)
 
     for i, watched_anime_id in enumerate(watched_anime_ids):
@@ -213,20 +206,21 @@ def make_nn_input_for(anime_id):
     max_correlation_score, best_correlation_match_user_rating = \
         get_max_correlation(anime_id, user=user, anime_ids=anime_ids)
 
-    if rating:
-        rating_input = rating / 10
-    else:
-        rating_input = 0
+    rating_input = rating / 10 if rating else 0
     members_input = members / max_members
     genre_score_input = max_genre_score
     genre_rating_input = best_genre_match_user_rating / 10
     corr_score_input = (max_correlation_score + 1) / 2
     corr_rating_input = best_correlation_match_user_rating / 10
 
-    input_array = [rating_input, members_input, genre_score_input,
-                   genre_rating_input, corr_score_input, corr_rating_input]
-
-    return input_array
+    return [
+        rating_input,
+        members_input,
+        genre_score_input,
+        genre_rating_input,
+        corr_score_input,
+        corr_rating_input,
+    ]
 
 
 def train_for_user():
@@ -236,7 +230,7 @@ def train_for_user():
     # nn_specs.set_options(6, 1, 4, [5, 4, 3, 2], 0.1)
     # brain = NN.NeuralNetwork()
     # brain.set_specs(nn_specs)
-    
+
     brain = NN.NeuralNetwork.deserialize('SerializedNN.json')
 
     current_error = 1e9
@@ -272,9 +266,7 @@ def train_for_user():
         last_n_results.append(abs(prediction - target[0]))
         if len(last_n_results) > len(user):
             last_n_results = last_n_results[1:]
-        error_sum = 0
-        for error in last_n_results:
-            error_sum += error
+        error_sum = sum(last_n_results)
         if len(last_n_results) >= len(user):
             current_error = error_sum / len(last_n_results)
         if epochs % 1000 == 0:
@@ -284,7 +276,7 @@ def train_for_user():
     end = time.process_time()
 
     print(f'Current error: {current_error * 10}')
-    
+
     brain.serialize('SerializedNN.json')
 
     print('=======')

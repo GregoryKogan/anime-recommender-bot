@@ -8,10 +8,7 @@ def show_account(message: Message, bot=None):
     user_id = message.from_user.id
     user_name, _ = db.get_user_data(user_id)
     user_ratings = db.get_ratings_by(user_id)
-    if user_ratings:
-        user_ratings = json.loads(user_ratings)
-    else:
-        user_ratings = {}
+    user_ratings = json.loads(user_ratings) if user_ratings else {}
     message_text = f"<b>{user_name}</b>'s account"
     empty_account = True
     watched_ids = list(user_ratings)
@@ -20,7 +17,7 @@ def show_account(message: Message, bot=None):
         record = [user_ratings[watched_id], int(watched_id)]
         rating_list.append(record)
     rating_list.sort(reverse=True)
-    if len(rating_list) > 0:
+    if rating_list:
         empty_account = False
         message_text += "\n\nRatings: "
         for record in rating_list:
@@ -52,11 +49,8 @@ def show_account(message: Message, bot=None):
     change_rating_button = InlineKeyboardButton(text='Change rating', 
                                                 callback_data=f'change_rating-{user_id}')
     user_ratings = db.get_ratings_by(user_id)
-    if user_ratings:
-        user_ratings = json.loads(user_ratings)
-    else:
-        user_ratings = {}
-    if len(list(user_ratings)) > 0:
+    user_ratings = json.loads(user_ratings) if user_ratings else {}
+    if list(user_ratings):
         inline_keyboard.add(remove_rating_button, change_rating_button)
     user_ban_list = db.get_ban_list(user_id)
     if not user_ban_list:
