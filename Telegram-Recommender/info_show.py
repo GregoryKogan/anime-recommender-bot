@@ -35,8 +35,7 @@ def find_anime(message: Message, bot=None):
     no_button = types.KeyboardButton('No')
     exit_button = types.KeyboardButton('Exit info mode')
     markup.add(no_button, yes_button, exit_button)
-    anime_poster = db.get_poster(search_result)
-    if anime_poster:
+    if anime_poster := db.get_poster(search_result):
         bot.send_photo(message.chat.id, anime_poster)
     user_answer = bot.send_message(message.chat.id, message_text, reply_markup=markup)
     bot.register_next_step_handler(user_answer, process_user_search_answer, search_result, bot=bot)
@@ -73,10 +72,12 @@ Find title:"""
                 related_ids.append(int(related_ids_text[related_ind]))
             except ValueError:
                 pass
-        real_related_ids = []
-        for related_id in related_ids:
-            if db.check_anime(related_id):
-                real_related_ids.append(related_id)
+        real_related_ids = [
+            related_id
+            for related_id in related_ids
+            if db.check_anime(related_id)
+        ]
+
         related_ids = real_related_ids
         message_text += f"<b>{title}</b>"
         if len(alternative_titles) > 0:
@@ -91,12 +92,13 @@ Find title:"""
         message_text += f'\n\nEpisodes: {episodes}'
         message_text += f'\nEpisode duration: {duration} min(s)'
 
-        real_related_ids = []
-        for related_id in related_ids:
-            if db.check_anime(related_id):
-                real_related_ids.append(related_id)
-        related_ids = real_related_ids
-        if len(related_ids) > 0:
+        real_related_ids = [
+            related_id
+            for related_id in related_ids
+            if db.check_anime(related_id)
+        ]
+
+        if related_ids := real_related_ids:
             message_text += '\n\nRelated to:'
             for related_id in related_ids:
                 related_title = db.get_first_title(related_id)
@@ -114,10 +116,7 @@ Find title:"""
         else:
             if anime_poster:
                 bot.send_photo(message.chat.id, anime_poster)
-                bot.send_message(message.chat.id, message_text, reply_markup=inline_keyboard)
-            else:
-                bot.send_message(message.chat.id, message_text, reply_markup=inline_keyboard)
-
+            bot.send_message(message.chat.id, message_text, reply_markup=inline_keyboard)
     elif message.text == 'Exit info mode':
         markup = variables.main_menu()
         bot.send_message(message.chat.id, 'Ok, leaving info mode', reply_markup=markup)

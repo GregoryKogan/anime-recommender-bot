@@ -3,19 +3,15 @@ import random
 
 class Formula(object):
     def __init__(self, factors_amount=1, start_factors=None):
-        if not start_factors:
-            self.factors = [((random.random() * 2) - 1) for _ in range(factors_amount)]
-        else:
-            self.factors = start_factors
+        self.factors = start_factors or [
+            ((random.random() * 2) - 1) for _ in range(factors_amount)
+        ]
 
     def get_output(self, args):
         if len(args) != len(self.factors):
             print('Unequal number of factors and arguments!')
             return None
-        result = 0
-        for i in range(len(args)):
-            result += args[i] * self.factors[i]
-        return result
+        return sum(args[i] * self.factors[i] for i in range(len(args)))
 
     @staticmethod
     def mutate(origin, mutation_rate):
@@ -53,9 +49,10 @@ class Guesser(object):
 
     def train(self, training_data):
         current_gen = self.test_formulas(training_data)
-        next_gen = []
-        for survived_ind in range(self.population_size // 2):
-            next_gen.append(current_gen[survived_ind]['formula'])
+        next_gen = [
+            current_gen[survived_ind]['formula']
+            for survived_ind in range(self.population_size // 2)
+        ]
 
         for new_born_ind in range(self.population_size // 2):
             origin = current_gen[new_born_ind]['formula']

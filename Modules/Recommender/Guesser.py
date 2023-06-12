@@ -20,11 +20,9 @@ def build_training_data(user):
         for watched_title_data in watched_titles_data:
             if watched_title == watched_title_data[0]:
                 continue
-            else:
-                current_genre_matching = Recommender.get_genre_score(genres, watched_title_data[1])
-                second_rating = user[str(watched_title_data[0])] / 10
-                current_genre_score = current_genre_matching * second_rating
-                genre_score = max(genre_score, current_genre_score)
+            current_genre_matching = Recommender.get_genre_score(genres, watched_title_data[1])
+            second_rating = user[str(watched_title_data[0])] / 10
+            genre_score = max(genre_score, current_genre_matching * second_rating)
         training_test = {
             'Input': [rating, members, genre_score, duration, episodes, age],
             'Target': user[str(watched_title)]
@@ -40,8 +38,7 @@ def get_user_factors(user, num_of_epochs=100):
     while g.precision > 0.5 and epochs < num_of_epochs:
         g.train(training_data)
         epochs += 1
-    factors = g.test_formulas(training_data)[0]['formula'].factors
-    return factors
+    return g.test_formulas(training_data)[0]['formula'].factors
 
 
 if __name__ == '__main__':

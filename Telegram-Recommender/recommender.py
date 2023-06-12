@@ -13,10 +13,9 @@ def get_genre_score(genres_1: str, genres_2: str):
     for symbol_index in range(len(genres_1)):
         if genres_1[symbol_index] == '1' or genres_2[symbol_index] == '1':
             total_genres += 1
-            if genres_1[symbol_index] == genres_2[symbol_index] == '1':
-                matching_sum += 1
-    genre_score = matching_sum / total_genres
-    return genre_score
+        if genres_1[symbol_index] == genres_2[symbol_index] == '1':
+            matching_sum += 1
+    return matching_sum / total_genres
 
 
 def get_user_watched_genres(user):
@@ -53,9 +52,11 @@ def get_recommendations(user, factors):
             continue
         genre_input = get_genre_input(genres, user_watched_genres)
         formula_input = [rating, members, genre_input, duration, episodes, age]
-        recommendation_score = 0
-        for parameter_index in range(6):
-            recommendation_score += formula_input[parameter_index] * factors[parameter_index]
+        recommendation_score = sum(
+            formula_input[parameter_index] * factors[parameter_index]
+            for parameter_index in range(6)
+        )
+
         record = [recommendation_score, anime_id]
         recommendations.append(record)
     recommendations.sort(reverse=True)
@@ -118,12 +119,11 @@ def recommend(chat_id, recommendation_index, bot=None):
     message_text += f'\n\nEpisodes: {episodes}'
     message_text += f'\nEpisode duration: {duration} min(s)'
 
-    real_related_ids = []
-    for related_id in related_ids:
-        if db.check_anime(related_id):
-            real_related_ids.append(related_id)
-    related_ids = real_related_ids
-    if len(related_ids) > 0:
+    real_related_ids = [
+        related_id for related_id in related_ids if db.check_anime(related_id)
+    ]
+
+    if related_ids := real_related_ids:
         message_text += '\n\nRelated to:'
         for related_id in related_ids:
             related_title = db.get_first_title(related_id)
@@ -139,7 +139,7 @@ def recommend(chat_id, recommendation_index, bot=None):
     if recommendation_index + 1 < len(recommendations):
         next_button = InlineKeyboardButton(text='Next', callback_data=f'next-{recommendation_index + 1}')
     else:
-        next_button = InlineKeyboardButton(text='Next', callback_data=f'next-{0}')
+        next_button = InlineKeyboardButton(text='Next', callback_data='next-0')
     inline_keyboard.add(ban_button, rate_button,
                         next_button)
 
@@ -148,9 +148,7 @@ def recommend(chat_id, recommendation_index, bot=None):
     else:
         if anime_poster:
             bot.send_photo(chat_id, anime_poster)
-            bot.send_message(chat_id, message_text, reply_markup=inline_keyboard)
-        else:
-            bot.send_message(chat_id, message_text, reply_markup=inline_keyboard)
+        bot.send_message(chat_id, message_text, reply_markup=inline_keyboard)
 
 
 if __name__ == '__main__':

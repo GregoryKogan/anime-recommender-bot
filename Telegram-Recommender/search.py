@@ -17,11 +17,7 @@ def to_searchable(line: str):
 def get_search_score(s: str, line: str):
     s = s.lower()
     parts = re.split(' |: |-|:', s)
-    score = 0
-    for part in parts:
-        if line.find(part) != -1:
-            score += 1
-    return score
+    return sum(part in line for part in parts)
 
 
 def find(search_line):
@@ -45,13 +41,10 @@ def find(search_line):
                 best_title = title
         result_record = [anime_id, best_score, best_title]
         search_results.append(result_record)
-    
+
     search_results.sort(reverse=True, key=lambda x: (x[1], -len(x[2])))
     search_results = search_results[:10:]
-    result_ids = []
-    for search_result in search_results:
-        result_ids.append(search_result[0])
-    return result_ids
+    return [search_result[0] for search_result in search_results]
 
 
 if __name__ == '__main__':

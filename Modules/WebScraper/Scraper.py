@@ -6,8 +6,7 @@ import sqlite3
 
 def get_page(link):
     response = requests.get(link).text
-    page = BeautifulSoup(response, 'lxml')
-    return page
+    return BeautifulSoup(response, 'lxml')
 
 
 def make_record_in_csv(file_name, record):
@@ -18,10 +17,10 @@ def make_record_in_csv(file_name, record):
 
 def get_anime_list():
     make_record_in_csv('anime_list.csv', ['anime_id', 'anime_name', 'anime_link'])
-    
+
     default_link = 'https://myanimelist.net/topanime.php?type=bypopularity&limit='
     for page_num in range(200):
-        current_page = get_page(default_link + f'{page_num * 50}')
+        current_page = get_page(f'{default_link}{page_num * 50}')
         ranking_lines = current_page.find_all('tr', class_='ranking-list')
         for ranking_line in ranking_lines:
             info_part = ranking_line.find('td', class_='title al va-t word-break')
@@ -34,14 +33,12 @@ def get_anime_list():
 
 def get_meta(anime_id, anime_link):
     page = get_page(anime_link)
-    anime_titles = []
     main_title = page.find('h1', class_='title-name').text
-    anime_titles.append(main_title)
+    anime_titles = [main_title]
     sub_paragraphs = page.find_all('div', class_='spaceit_pad')
     alternative_titles = []
     for sub_paragraph in sub_paragraphs:
-        span = sub_paragraph.span
-        if span:
+        if span := sub_paragraph.span:
             if span.text == 'English:':
                 eng_titles = sub_paragraph.text[len('English:  '):-3:].split(',')
                 for title in eng_titles:
@@ -81,13 +78,10 @@ def get_meta(anime_id, anime_link):
     anime_genres = []
     other_pads = page.find('td', class_='borderClass').find_all('div')
     for pad in other_pads:
-        span = pad.find('span', class_='dark_text')
-        if span:
+        if span := pad.find('span', class_='dark_text'):
             if span.text.find('Genres:') != -1:
                 genre_pads = pad.find_all('span', itemprop='genre')
-                for genre_pad in genre_pads:
-                    anime_genres.append(genre_pad.text)
-
+                anime_genres.extend(genre_pad.text for genre_pad in genre_pads)
     related_titles = []
     try:
         related_table = page.find('table', class_='anime_detail_related_anime')
@@ -104,19 +98,10 @@ def get_meta(anime_id, anime_link):
     genres_string = ','.join(anime_genres)
     related_string = ','.join(related_titles)
     anime_id = int(anime_id)
-    if anime_rating == 'N/A':
-        anime_rating = 0.0
-    else:
-        anime_rating = float(anime_rating)
+    anime_rating = 0.0 if anime_rating == 'N/A' else float(anime_rating)
     anime_members = int(anime_members)
-    if num_of_episodes == 'Unknown':
-        num_of_episodes = 0
-    else:
-        num_of_episodes = int(num_of_episodes)
-    if duration != 'Unknown\n':
-        duration = int(duration)
-    else:
-        duration = 0
+    num_of_episodes = 0 if num_of_episodes == 'Unknown' else int(num_of_episodes)
+    duration = int(duration) if duration != 'Unknown\n' else 0
     release_date = int(release_date)
     # print(f'anime id: {anime_id}')
     # print(f'titles: {titles_string}')

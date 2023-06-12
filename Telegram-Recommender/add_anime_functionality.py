@@ -42,8 +42,7 @@ def find_anime(message: Message, bot=None):
     no_button = types.KeyboardButton('No')
     exit_button = types.KeyboardButton('Exit adding mode')
     markup.add(no_button, yes_button, exit_button)
-    anime_poster = db.get_poster(search_result)
-    if anime_poster:
+    if anime_poster := db.get_poster(search_result):
         bot.send_photo(message.chat.id, anime_poster)
     user_answer = bot.send_message(message.chat.id, message_text, reply_markup=markup)
     bot.register_next_step_handler(user_answer, process_user_search_answer, search_result, bot=bot)
