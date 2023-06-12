@@ -57,8 +57,7 @@ def get_all_genres():
         for genre in current_genres:
             if genre != '':
                 genres.add(genre)
-    genres = sorted(genres)
-    return genres
+    return sorted(genres)
 
 
 def get_genre_coordinates(genres, anime_id):

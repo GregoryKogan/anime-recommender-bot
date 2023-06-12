@@ -33,13 +33,11 @@ class Matrix:
         return result
 
     def multiply_this(self, n):
-        if type(n) is Matrix:
-            for i in range(self.rows):
-                for j in range(self.columns):
+        for i in range(self.rows):
+            for j in range(self.columns):
+                if type(n) is Matrix:
                     self.values[i][j] *= n.values[i][j]
-        else:
-            for i in range(self.rows):
-                for j in range(self.columns):
+                else:
                     self.values[i][j] *= n
 
     def fill_random(self):
@@ -60,14 +58,9 @@ class Matrix:
         return result
 
     def add(self, n):
-        if type(n) is Matrix:
-            for i in range(self.rows):
-                for j in range(self.columns):
-                    self.values[i][j] += n.values[i][j]
-        else:
-            for i in range(self.rows):
-                for j in range(self.columns):
-                    self.values[i][j] += n
+        for i in range(self.rows):
+            for j in range(self.columns):
+                self.values[i][j] += n.values[i][j] if type(n) is Matrix else n
 
     @staticmethod
     def subtract(m1, m2):

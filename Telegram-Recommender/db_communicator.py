@@ -191,13 +191,11 @@ def get_poster(anime_id):
     large_link = f'{poster_link[:-4:]}l.jpg'
     try:
         response = requests.get(large_link)
-        img = Image.open(BytesIO(response.content))
-        return img
+        return Image.open(BytesIO(response.content))
     except Exception:
         try:
             response = requests.get(poster_link)
-            img = Image.open(BytesIO(response.content))
-            return img
+            return Image.open(BytesIO(response.content))
         except Exception:
             return None
 
@@ -240,8 +238,7 @@ def convert_number_to_readable(num):
         if cnt == 3:
             result += '.'
             cnt = 0
-    result = result[::-1]
-    return result
+    return result[::-1]
 
 
 def get_ban_list(user_id):
