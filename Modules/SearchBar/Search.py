@@ -39,10 +39,7 @@ def find(line, titles):
 
     results = convert_to_result_list(results)
 
-    if len(results) > 0:
-        return results
-
-    return 'Not Found'
+    return results if len(results) > 0 else 'Not Found'
 
 
 def get_titles():

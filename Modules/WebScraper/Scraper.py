@@ -115,17 +115,21 @@ def get_meta(anime_id, anime_link):
 
     connection = sqlite3.connect('Recommender.db')
     executor = connection.cursor()
-    executor.execute(f"""INSERT INTO anime_meta VALUES 
+    executor.execute(
+        """INSERT INTO anime_meta VALUES 
 (:anime_id, :titles, :genres, :rating, :members, :episodes, :duration, :release_date, :related_ids)""",
-                     {'anime_id': anime_id,
-                      'titles': titles_string,
-                      'genres': genres_string,
-                      'rating': anime_rating,
-                      'members': anime_members,
-                      'episodes': num_of_episodes,
-                      'duration': duration,
-                      'release_date': release_date,
-                      'related_ids': related_string})
+        {
+            'anime_id': anime_id,
+            'titles': titles_string,
+            'genres': genres_string,
+            'rating': anime_rating,
+            'members': anime_members,
+            'episodes': num_of_episodes,
+            'duration': duration,
+            'release_date': release_date,
+            'related_ids': related_string,
+        },
+    )
     connection.commit()
     connection.close()
 

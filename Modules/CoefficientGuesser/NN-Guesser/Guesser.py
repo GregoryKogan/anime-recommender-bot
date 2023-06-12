@@ -27,9 +27,11 @@ def get_anime_ids():
 def get_max_members():
     connection = sqlite3.connect('Recommender.db')
     executor = connection.cursor()
-    executor.execute(f"""SELECT value
+    executor.execute(
+        """SELECT value
                     FROM system
-                    WHERE variable_name='max_members'""")
+                    WHERE variable_name='max_members'"""
+    )
     return int(executor.fetchone()[0])
 
 
