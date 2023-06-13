@@ -1,4 +1,4 @@
-# Anime-Recommender
+# anime-recommender-bot
 - Bot telegram nickname: @anime_recommender_bot
 - Link: https://t.me/anime_recommender_bot
 ---
